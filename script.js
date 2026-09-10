@@ -1,9 +1,10 @@
-// script.js - Updated with Multiline-Safe CSV Parser & Direct iOS Tap Response
+// script.js - Updated with Cooldown Spacing, Multiline-Safe CSV Parser, and Randomized Shuffling
 const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSze_p4QmL1qGlhNLBs_0cZ4pDaYjj0vmvKms06KdtFuQzlQjXC2zURSJFsbRthVPSq2q71wnf7qeEQ/pub?output=csv';
 
 let fullDeck = [];
 let activeDeck = [];
 let currentIndex = 0;
+// userScores tracks object data: { streak: number, cooldownIndex: number }
 let userScores = JSON.parse(localStorage.getItem('ap_mastery')) || {};
 let customCards = JSON.parse(localStorage.getItem('ap_custom_cards')) || [];
 
@@ -84,12 +85,23 @@ function buildSubjectCheckboxes() {
     });
 }
 
+// Fisher-Yates Shuffle algorithm for true randomization
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
 function startSession() {
     const checkboxes = document.querySelectorAll('#subject-checkboxes input:checked');
     const selectedSubjects = Array.from(checkboxes).map(cb => cb.value);
 
     let filtered = fullDeck.filter(card => selectedSubjects.includes(card.subject || "General"));
-    filtered.sort((a, b) => (userScores[a.id] || 0) - (userScores[b.id] || 0));
+    
+    // Randomize the order of cards initially so they don't follow sheet sequence
+    shuffleArray(filtered);
 
     const limitVal = document.getElementById('card-limit-select').value;
     if (limitVal !== 'all') {
@@ -241,13 +253,26 @@ function showToast(msg) {
 function handleSwipe(mastered) {
     if (currentIndex >= activeDeck.length) return;
     const activeCard = activeDeck[currentIndex];
-    let score = userScores[activeCard.id] || 0;
+    
+    // Support legacy numeric scores or upgrade to object tracking
+    let cardData = userScores[activeCard.id];
+    if (typeof cardData !== 'object' || cardData === null) {
+        cardData = { streak: typeof cardData === 'number' ? cardData : 0 };
+    }
 
     if (mastered) {
-        userScores[activeCard.id] = score + 1;
+        cardData.streak += 1;
+        // Spaced Spacing Logic: Insert the mastered card further down into the active queue
+        // based on streak depth (e.g. 4 to 8 cards down) so it reappears later spaced out
+        let insertOffset = Math.min(cardData.streak * 3 + 2, activeDeck.length - currentIndex);
+        activeDeck.splice(currentIndex + insertOffset, 0, activeCard);
+        
+        userScores[activeCard.id] = cardData;
     } else {
-        userScores[activeCard.id] = 0;
-        activeDeck.push(activeCard);
+        // Needs practice: reset streak and re-insert very close to current spot (3 cards down)
+        cardData.streak = 0;
+        userScores[activeCard.id] = cardData;
+        activeDeck.splice(currentIndex + 3, 0, activeCard);
     }
 
     localStorage.setItem('ap_mastery', JSON.stringify(userScores));
