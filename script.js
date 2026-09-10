@@ -1,18 +1,21 @@
 let deck = [];
 let currentIndex = 0;
 let userScores = JSON.parse(localStorage.getItem('ap_mastery')) || {};
+let customCards = JSON.parse(localStorage.getItem('ap_custom_cards')) || [];
 
-// Fetch shared deck file
 fetch('deck.json')
     .then(res => res.json())
     .then(data => {
-        deck = data;
-        // Sort lowest mastery scores to the front
+        deck = [...data, ...customCards];
         deck.sort((a, b) => (userScores[a.id] || 0) - (userScores[b.id] || 0));
         showCard();
     });
 
 function showCard() {
+    const cardEl = document.getElementById('card');
+    cardEl.style.transform = '';
+    cardEl.classList.remove('flipped');
+
     if (currentIndex >= deck.length) {
         document.getElementById('question-text').innerText = "Session Complete!";
         document.getElementById('answer-text').innerText = "You've reviewed all cards.";
@@ -31,28 +34,78 @@ function showCard() {
     } else {
         imgEl.style.display = 'none';
     }
-    
-    document.getElementById('card').classList.remove('flipped');
 }
 
-// Tap card to flip
-document.getElementById('card').addEventListener('click', () => {
-    document.getElementById('card').classList.toggle('flipped');
+// Touch Swiping Logic
+const card = document.getElementById('card');
+let startX = 0;
+let currentX = 0;
+let isDragging = false;
+
+card.addEventListener('touchstart', (e) => {
+    startX = e.touches[0].clientX;
+    isDragging = true;
 });
 
-// Leitner score processing
+card.addEventListener('touchmove', (e) => {
+    if (!isDragging) return;
+    currentX = e.touches[0].clientX;
+    let diffX = currentX - startX;
+    card.style.transform = `translateX(${diffX}px) rotate(${diffX / 20}deg)`;
+});
+
+card.addEventListener('touchend', () => {
+    if (!isDragging) return;
+    isDragging = false;
+    let diffX = currentX - startX;
+
+    if (diffX > 100) {
+        handleSwipe(true); // Swipe Right -> Mastered
+    } else if (diffX < -100) {
+        handleSwipe(false); // Swipe Left -> Practice
+    } else {
+        if (Math.abs(diffX) < 10) {
+            card.classList.toggle('flipped'); // Tap to Flip
+        }
+        card.style.transform = '';
+    }
+    startX = 0;
+    currentX = 0;
+});
+
 function handleSwipe(mastered) {
-    const card = deck[currentIndex];
-    let score = userScores[card.id] || 0;
+    if (currentIndex >= deck.length) return;
+    const activeCard = deck[currentIndex];
+    let score = userScores[activeCard.id] || 0;
 
     if (mastered) {
-        userScores[card.id] = score + 1; // Increase score -> Shows less often next time
+        userScores[activeCard.id] = score + 1;
     } else {
-        userScores[card.id] = 0; // Reset score -> Re-queues card
-        deck.push(card); // Re-insert into active session
+        userScores[activeCard.id] = 0;
+        deck.push(activeCard);
     }
 
     localStorage.setItem('ap_mastery', JSON.stringify(userScores));
     currentIndex++;
+    showCard();
+}
+
+// Modal Handlers
+function openModal() { document.getElementById('card-modal').style.display = 'flex'; }
+function closeModal() { document.getElementById('card-modal').style.display = 'none'; }
+
+function saveNewCard() {
+    const subject = document.getElementById('new-subject').value;
+    const q = document.getElementById('new-q').value;
+    const a = document.getElementById('new-a').value;
+    const image = document.getElementById('new-img').value;
+
+    if (!q || !a) return;
+
+    const newCard = { id: Date.now().toString(), subject: subject || "General", q, a, image };
+    customCards.push(newCard);
+    localStorage.setItem('ap_custom_cards', JSON.stringify(customCards));
+    deck.push(newCard);
+    closeModal();
     showCard();
 }
