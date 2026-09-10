@@ -98,12 +98,13 @@ button:active {
     -webkit-backface-visibility: hidden;
     border-radius: 16px;
     background: #ffffff;
-    padding: 20px;
+    padding: 16px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     align-items: center;
     text-align: center;
+    overflow: hidden; /* Prevents large content from spilling outside rounded corners */
 }
 
 .card-back {
@@ -126,24 +127,28 @@ button:active {
 }
 
 .card-text {
-    font-size: 1.15rem;
-    line-height: 1.5;
+    font-size: 1.05rem;
+    line-height: 1.4;
     color: #1c1c1e;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-grow: 1;
-    margin: 10px 0;
+    overflow-y: auto; /* Allows long question text to scroll if image is extra tall */
+    width: 100%;
+    padding: 0 4px;
 }
 
-/* Card Image */
+/* Responsive Image Scaling */
 #card-image {
+    width: auto;
     max-width: 100%;
-    max-height: 180px;
-    object-fit: contain;
+    max-height: 42vh; /* Dynamically caps image height to 42% of the screen height */
+    object-fit: contain; /* Preserves exact aspect ratio without stretching */
     border-radius: 8px;
-    margin-bottom: 10px;
+    margin: 8px 0;
     display: none;
+    flex-shrink: 1; /* Allows image to shrink cleanly if question text is long */
 }
 
 /* Swipe Buckets Visual Feedback */
