@@ -11,12 +11,13 @@
         <header>
             <h1 id="subject-title">Loading...</h1>
             <p id="progress">Card 0 of 0</p>
+            <button id="add-card-btn" onclick="openModal()">+ Add Card</button>
         </header>
 
         <main class="card-container">
             <div id="card" class="card">
                 <div class="card-face front">
-                    <p class="tag">QUESTION</p>
+                    <p class="tag">QUESTION (Swipe L/R or Tap)</p>
                     <p id="question-text"></p>
                     <img id="card-image" class="card-img" style="display:none;" />
                 </div>
@@ -32,6 +33,22 @@
             <button class="btn btn-right" onclick="handleSwipe(true)">Mastered ✅</button>
         </footer>
     </div>
+
+    <!-- Modal for Adding Cards -->
+    <div id="card-modal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <h2>Add New Flashcard</h2>
+            <input type="text" id="new-subject" placeholder="Subject (e.g. Welding)" />
+            <textarea id="new-q" placeholder="Question"></textarea>
+            <textarea id="new-a" placeholder="Answer"></textarea>
+            <input type="text" id="new-img" placeholder="Image URL (Optional)" />
+            <div class="modal-actions">
+                <button onclick="saveNewCard()" class="btn btn-right">Save</button>
+                <button onclick="closeModal()" class="btn btn-left">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
