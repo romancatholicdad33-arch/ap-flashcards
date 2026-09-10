@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>A&P Flashcards</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <header>
+            <h1 id="subject-title">Loading...</h1>
+            <p id="progress">Card 0 of 0</p>
+        </header>
+
+        <main class="card-container">
+            <div id="card" class="card">
+                <div class="card-face front">
+                    <p class="tag">QUESTION</p>
+                    <p id="question-text"></p>
+                    <img id="card-image" class="card-img" style="display:none;" />
+                </div>
+                <div class="card-face back">
+                    <p class="tag">ANSWER</p>
+                    <p id="answer-text"></p>
+                </div>
+            </div>
+        </main>
+
+        <footer class="controls">
+            <button class="btn btn-left" onclick="handleSwipe(false)">Need Practice ❌</button>
+            <button class="btn btn-right" onclick="handleSwipe(true)">Mastered ✅</button>
+        </footer>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

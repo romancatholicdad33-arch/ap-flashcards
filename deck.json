@@ -1,0 +1,6 @@
+[
+    { "id": "1", "subject": "Welding", "q": "What is required for fillet weld penetration?", "a": "25% to 50% penetration of the base metal thickness." },
+    { "id": "2", "subject": "Welding", "q": "What does cracking adjacent to a weld indicate?", "a": "The part cooled too quickly after welding." },
+    { "id": "3", "subject": "Corrosion", "q": "Which metal is most anodic in the galvanic series?", "a": "Magnesium" },
+    { "id": "4", "subject": "Corrosion", "q": "How do you clean corrosion from magnesium parts?", "a": "Using a stiff, nonmetallic brush." }
+]
