@@ -1,4 +1,4 @@
-// script.js - Updated for Direct GitHub Images & Instant iOS Tap Response
+// script.js - Updated with Multiline-Safe CSV Parser & Direct iOS Tap Response
 const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSze_p4QmL1qGlhNLBs_0cZ4pDaYjj0vmvKms06KdtFuQzlQjXC2zURSJFsbRthVPSq2q71wnf7qeEQ/pub?output=csv';
 
 let fullDeck = [];
@@ -17,47 +17,58 @@ fetch(GOOGLE_SHEET_CSV_URL)
     })
     .catch(err => console.error("Error loading sheet:", err));
 
-// Lightweight CSV parser handling commas inside quotes
+// Robust CSV Parser that handles quoted fields with internal newlines (multi-line cells)
 function parseCSV(text) {
-    const lines = text.trim().split('\n');
-    if (lines.length < 2) return [];
+    let p = 0, c = '';
+    let row = [''];
+    let rows = [row];
+    let inQuotes = false;
     
-    const headers = parseCSVLine(lines[0]);
+    while (p < text.length) {
+        c = text[p];
+        if (inQuotes) {
+            if (c === '"') {
+                if (text[p + 1] === '"') {
+                    row[row.length - 1] += '"';
+                    p++;
+                } else {
+                    inQuotes = false;
+                }
+            } else {
+                row[row.length - 1] += c;
+            }
+        } else {
+            if (c === '"') {
+                inQuotes = true;
+            } else if (c === ',') {
+                row.push('');
+            } else if (c === '\r') {
+                // Skip carriage returns
+            } else if (c === '\n') {
+                row = [''];
+                rows.push(row);
+            } else {
+                row[row.length - 1] += c;
+            }
+        }
+        p++;
+    }
+    
+    const cleanRows = rows.filter(r => r.length > 1 || (r.length === 1 && r[0].trim() !== ''));
+    if (cleanRows.length < 2) return [];
+
+    const headers = cleanRows[0].map(h => h.trim());
     const results = [];
 
-    for (let i = 1; i < lines.length; i++) {
-        if (!lines[i].trim()) continue;
-        const rowValues = parseCSVLine(lines[i]);
-        const row = {};
+    for (let i = 1; i < cleanRows.length; i++) {
+        const rowValues = cleanRows[i];
+        const rowObj = {};
         headers.forEach((header, idx) => {
-            row[header] = rowValues[idx] || '';
+            rowObj[header] = (rowValues[idx] !== undefined) ? rowValues[idx].trim() : '';
         });
-        results.push(row);
+        results.push(rowObj);
     }
     return results;
-}
-
-function parseCSVLine(line) {
-    const values = [];
-    let current = '';
-    let inQuotes = false;
-
-    for (let i = 0; i < line.length; i++) {
-        const char = line[i];
-        if (char === '"' && line[i + 1] === '"') {
-            current += '"';
-            i++;
-        } else if (char === '"') {
-            inQuotes = !inQuotes;
-        } else if (char === ',' && !inQuotes) {
-            values.push(current.trim());
-            current = '';
-        } else {
-            current += char;
-        }
-    }
-    values.push(current.trim());
-    return values;
 }
 
 function buildSubjectCheckboxes() {
@@ -113,6 +124,7 @@ function showCard() {
 
     const card = activeDeck[currentIndex];
     document.getElementById('subject-title').innerText = card.subject || "General";
+    document.getElementById('subject-title-front').innerText = card.subject || "General";
     document.getElementById('progress').innerText = `Card ${currentIndex + 1} of ${activeDeck.length}`;
     document.getElementById('question-text').innerText = card.q;
     document.getElementById('answer-text').innerText = card.a;
@@ -157,7 +169,6 @@ card.addEventListener('touchmove', (e) => {
     let diffX = currentX - startX;
     let diffY = currentY - startY;
 
-    // Only initiate swipe if horizontal movement clearly exceeds vertical scroll
     if (Math.abs(diffX) > 10 && Math.abs(diffX) > Math.abs(diffY)) {
         hasMoved = true;
         card.style.transform = `translateX(${diffX}px) rotate(${diffX / 15}deg)`;
@@ -181,7 +192,6 @@ card.addEventListener('touchend', () => {
     isDragging = false;
     let diffX = currentX - startX;
 
-    // Direct Tap: If fingers didn't drag horizontally, flip immediately
     if (!hasMoved && Math.abs(diffX) < 10) {
         card.style.transition = 'transform 0.25s ease';
         card.classList.toggle('flipped');
@@ -189,7 +199,6 @@ card.addEventListener('touchend', () => {
         return;
     }
 
-    // Swipe Thresholds
     if (diffX < -90) {
         depositCard('left', false);
     } else if (diffX > 90) {
