@@ -2,85 +2,82 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>A&P Flashcards</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="app">
-        <header>
-            <div class="header-top">
-                <h1 id="subject-title">A&P Study</h1>
-                <button id="add-card-btn" onclick="openModal()">+ Add Card</button>
-            </div>
-            
-            <!-- Study Options Controls -->
-            <div class="filter-controls">
-                <button class="filter-btn" onclick="openFilterModal()">⚙️ Study Options</button>
-                <p id="progress">Card 0 of 0</p>
-            </div>
-        </header>
 
-        <main class="card-container">
-            <div id="card" class="card">
-                <div class="card-face front">
-                    <div class="stamp stamp-left">NEEDS PRACTICE</div>
-                    <div class="stamp stamp-right">MASTERED</div>
-                    <p class="tag">QUESTION (Tap to Flip)</p>
-                    <p id="question-text"></p>
-                    <img id="card-image" class="card-img" style="display:none;" />
-                </div>
-                <div class="card-face back">
-                    <div class="stamp stamp-left">NEEDS PRACTICE</div>
-                    <div class="stamp stamp-right">MASTERED</div>
-                    <p class="tag">ANSWER</p>
-                    <p id="answer-text"></p>
-                </div>
-            </div>
-        </main>
+    <!-- Header Controls -->
+    <header>
+        <h1>A&P Study</h1>
+        <div class="header-buttons">
+            <button type="button" onclick="openFilterModal()">Options</button>
+            <button type="button" onclick="openModal()">+ Add</button>
+        </div>
+    </header>
 
-        <div id="toast">Card Accepted!</div>
-
-        <footer class="controls">
-            <div id="bucket-left" class="bucket bucket-left">❌ Need Practice</div>
-            <div id="bucket-right" class="bucket bucket-right">✅ Mastered</div>
-        </footer>
+    <!-- Session Progress -->
+    <div id="progress-bar">
+        <span id="subject-title">Loading...</span> | <span id="progress">Card 0 of 0</span>
     </div>
 
-    <!-- Modal for Study Options (Subject & Count Filter) -->
-    <div id="filter-modal" class="modal" style="display:none;">
-        <div class="modal-content">
-            <h2>Session Setup</h2>
-            <label class="modal-label">Select Subjects:</label>
-            <div id="subject-checkboxes" class="checkbox-group"></div>
-
-            <label class="modal-label">Session Limit (Cards):</label>
-            <select id="card-limit-select">
-                <option value="all">All Available Cards</option>
-                <option value="5">5 Cards (Quick Session)</option>
-                <option value="10">10 Cards</option>
-                <option value="20">20 Cards</option>
-            </select>
-
-            <div class="modal-actions">
-                <button onclick="applyFilters()" class="btn btn-right">Start Session</button>
-                <button onclick="closeFilterModal()" class="btn btn-left">Cancel</button>
+    <!-- Interactive Card Scene Container -->
+    <div class="scene">
+        <div id="card">
+            <!-- Front Face -->
+            <div class="card-face card-front">
+                <div class="card-subject" id="subject-title-front">Question</div>
+                <img id="card-image" src="" alt="Flashcard Diagram" style="display: none;">
+                <div class="card-text" id="question-text">Loading flashcards...</div>
+            </div>
+            <!-- Back Face -->
+            <div class="card-face card-back">
+                <div class="card-subject">Answer</div>
+                <div class="card-text" id="answer-text">Flip to reveal</div>
             </div>
         </div>
     </div>
 
-    <!-- Modal for Adding Cards -->
-    <div id="card-modal" class="modal" style="display:none;">
+    <!-- Swipe Bucket Indicators -->
+    <div class="buckets">
+        <div id="bucket-left" class="bucket">❌ Practice</div>
+        <div id="bucket-right" class="bucket">✅ Mastered</div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast"></div>
+
+    <!-- Study Options & Subject Filter Modal -->
+    <div id="filter-modal" class="modal">
         <div class="modal-content">
-            <h2>Add New Flashcard</h2>
-            <input type="text" id="new-subject" placeholder="Subject (e.g. Welding)" />
-            <textarea id="new-q" placeholder="Question"></textarea>
-            <textarea id="new-a" placeholder="Answer"></textarea>
-            <input type="text" id="new-img" placeholder="Image URL (Optional)" />
-            <div class="modal-actions">
-                <button onclick="saveNewCard()" class="btn btn-right">Save</button>
-                <button onclick="closeModal()" class="btn btn-left">Cancel</button>
-            </div>
+            <h2>Study Options</h2>
+            <label><strong>Select Subjects:</strong></label>
+            <div id="subject-checkboxes" class="checkbox-group"></div>
+            
+            <label for="card-limit-select"><strong>Card Limit:</strong></label>
+            <select id="card-limit-select">
+                <option value="all">All Available</option>
+                <option value="10">10 Cards</option>
+                <option value="25">25 Cards</option>
+                <option value="50">50 Cards</option>
+            </select>
+
+            <button type="button" onclick="applyFilters()">Apply & Restart</button>
+            <button type="button" onclick="closeFilterModal()" style="background:#8e8e93;">Close</button>
+        </div>
+    </div>
+
+    <!-- Add Custom Card Modal -->
+    <div id="card-modal" class="modal">
+        <div class="modal-content">
+            <h2>Add Custom Card</h2>
+            <input type="text" id="new-subject" placeholder="Subject (e.g., General, Airframe)">
+            <input type="text" id="new-q" placeholder="Question">
+            <input type="text" id="new-a" placeholder="Answer">
+            <input type="text" id="new-img" placeholder="Image Path/URL (Optional)">
+            <button type="button" onclick="saveNewCard()">Save Card</button>
+            <button type="button" onclick="closeModal()" style="background:#8e8e93;">Cancel</button>
         </div>
     </div>
 

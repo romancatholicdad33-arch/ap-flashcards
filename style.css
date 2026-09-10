@@ -5,6 +5,7 @@
     padding: 0;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none; /* Prevents callout popup on iOS tap-hold */
 }
 
 body {
@@ -18,6 +19,8 @@ body {
     padding: 15px;
     overflow-x: hidden;
     touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 /* Header & Progress */
@@ -86,7 +89,14 @@ button:active {
     cursor: pointer;
     user-select: none;
     -webkit-user-select: none;
-    touch-action: manipulation; /* Removes 300ms delay and prevents accidental zooming */
+    touch-action: manipulation;
+}
+
+/* Force inner elements to pass clicks directly to the parent card container */
+.card-face * {
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 /* Card Front & Back Faces */
@@ -104,7 +114,7 @@ button:active {
     justify-content: space-between;
     align-items: center;
     text-align: center;
-    overflow: hidden; /* Prevents large content from spilling outside rounded corners */
+    overflow: hidden;
 }
 
 .card-back {
@@ -134,7 +144,7 @@ button:active {
     align-items: center;
     justify-content: center;
     flex-grow: 1;
-    overflow-y: auto; /* Allows long question text to scroll if image is extra tall */
+    overflow-y: auto;
     width: 100%;
     padding: 0 4px;
 }
@@ -143,12 +153,12 @@ button:active {
 #card-image {
     width: auto;
     max-width: 100%;
-    max-height: 42vh; /* Dynamically caps image height to 42% of the screen height */
-    object-fit: contain; /* Preserves exact aspect ratio without stretching */
+    max-height: 42vh;
+    object-fit: contain;
     border-radius: 8px;
     margin: 8px 0;
     display: none;
-    flex-shrink: 1; /* Allows image to shrink cleanly if question text is long */
+    flex-shrink: 1;
 }
 
 /* Swipe Buckets Visual Feedback */
