@@ -17,7 +17,7 @@
         <main class="card-container">
             <div id="card" class="card">
                 <div class="card-face front">
-                    <p class="tag">QUESTION (Swipe L/R or Tap)</p>
+                    <p class="tag">QUESTION</p>
                     <p id="question-text"></p>
                     <img id="card-image" class="card-img" style="display:none;" />
                 </div>
@@ -29,8 +29,8 @@
         </main>
 
         <footer class="controls">
-            <button class="btn btn-left" onclick="handleSwipe(false)">Need Practice ❌</button>
-            <button class="btn btn-right" onclick="handleSwipe(true)">Mastered ✅</button>
+            <div id="bucket-left" class="bucket bucket-left">❌ Need Practice</div>
+            <div id="bucket-right" class="bucket bucket-right">✅ Mastered</div>
         </footer>
     </div>
 
