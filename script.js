@@ -36,22 +36,28 @@ function showCard() {
     }
 }
 
-// Touch Swiping Logic
+// Fixed Touch Swiping & Tapping Logic
 const card = document.getElementById('card');
 let startX = 0;
 let currentX = 0;
 let isDragging = false;
+let hasMoved = false;
 
 card.addEventListener('touchstart', (e) => {
     startX = e.touches[0].clientX;
+    currentX = startX;
     isDragging = true;
+    hasMoved = false;
 });
 
 card.addEventListener('touchmove', (e) => {
     if (!isDragging) return;
     currentX = e.touches[0].clientX;
     let diffX = currentX - startX;
-    card.style.transform = `translateX(${diffX}px) rotate(${diffX / 20}deg)`;
+    if (Math.abs(diffX) > 10) {
+        hasMoved = true;
+        card.style.transform = `translateX(${diffX}px) rotate(${diffX / 20}deg)`;
+    }
 });
 
 card.addEventListener('touchend', () => {
@@ -59,14 +65,14 @@ card.addEventListener('touchend', () => {
     isDragging = false;
     let diffX = currentX - startX;
 
-    if (diffX > 100) {
+    if (hasMoved && diffX > 100) {
         handleSwipe(true); // Swipe Right -> Mastered
-    } else if (diffX < -100) {
+    } else if (hasMoved && diffX < -100) {
         handleSwipe(false); // Swipe Left -> Practice
+    } else if (!hasMoved) {
+        card.classList.toggle('flipped'); // Clean Tap to Flip
+        card.style.transform = '';
     } else {
-        if (Math.abs(diffX) < 10) {
-            card.classList.toggle('flipped'); // Tap to Flip
-        }
         card.style.transform = '';
     }
     startX = 0;
