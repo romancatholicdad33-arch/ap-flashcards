@@ -9,9 +9,16 @@
 <body>
     <div id="app">
         <header>
-            <h1 id="subject-title">Loading...</h1>
-            <p id="progress">Card 0 of 0</p>
-            <button id="add-card-btn" onclick="openModal()">+ Add Card</button>
+            <div class="header-top">
+                <h1 id="subject-title">A&P Study</h1>
+                <button id="add-card-btn" onclick="openModal()">+ Add Card</button>
+            </div>
+            
+            <!-- Study Options Controls -->
+            <div class="filter-controls">
+                <button class="filter-btn" onclick="openFilterModal()">⚙️ Study Options</button>
+                <p id="progress">Card 0 of 0</p>
+            </div>
         </header>
 
         <main class="card-container">
@@ -38,6 +45,28 @@
             <div id="bucket-left" class="bucket bucket-left">❌ Need Practice</div>
             <div id="bucket-right" class="bucket bucket-right">✅ Mastered</div>
         </footer>
+    </div>
+
+    <!-- Modal for Study Options (Subject & Count Filter) -->
+    <div id="filter-modal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <h2>Session Setup</h2>
+            <label class="modal-label">Select Subjects:</label>
+            <div id="subject-checkboxes" class="checkbox-group"></div>
+
+            <label class="modal-label">Session Limit (Cards):</label>
+            <select id="card-limit-select">
+                <option value="all">All Available Cards</option>
+                <option value="5">5 Cards (Quick Session)</option>
+                <option value="10">10 Cards</option>
+                <option value="20">20 Cards</option>
+            </select>
+
+            <div class="modal-actions">
+                <button onclick="applyFilters()" class="btn btn-right">Start Session</button>
+                <button onclick="closeFilterModal()" class="btn btn-left">Cancel</button>
+            </div>
+        </div>
     </div>
 
     <!-- Modal for Adding Cards -->
