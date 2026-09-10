@@ -17,16 +17,22 @@
         <main class="card-container">
             <div id="card" class="card">
                 <div class="card-face front">
-                    <p class="tag">QUESTION</p>
+                    <div class="stamp stamp-left">NEEDS PRACTICE</div>
+                    <div class="stamp stamp-right">MASTERED</div>
+                    <p class="tag">QUESTION (Tap to Flip)</p>
                     <p id="question-text"></p>
                     <img id="card-image" class="card-img" style="display:none;" />
                 </div>
                 <div class="card-face back">
+                    <div class="stamp stamp-left">NEEDS PRACTICE</div>
+                    <div class="stamp stamp-right">MASTERED</div>
                     <p class="tag">ANSWER</p>
                     <p id="answer-text"></p>
                 </div>
             </div>
         </main>
+
+        <div id="toast">Card Accepted!</div>
 
         <footer class="controls">
             <div id="bucket-left" class="bucket bucket-left">❌ Need Practice</div>

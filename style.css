@@ -20,24 +20,38 @@ header { padding: 16px; text-align: center; position: relative; }
 }
 
 .card-container { flex: 1; display: flex; justify-content: center; align-items: center; perspective: 1000px; padding: 20px; position: relative; }
-.card { width: 100%; max-width: 340px; height: 440px; position: relative; transform-style: preserve-3d; transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease; border-radius: 20px; cursor: pointer; touch-action: none; }
+
+/* Flashcard Base */
+.card { width: 100%; max-width: 340px; height: 440px; position: relative; transform-style: preserve-3d; transition: transform 0.25s ease; border-radius: 20px; cursor: pointer; touch-action: none; }
 .card.flipped { transform: rotateY(180deg); }
 
-.card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 20px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; align-items: center; text-align: center; border: 2px solid #334155; background: #1e293b; transition: background-color 0.2s ease, border-color 0.2s ease; }
+.card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 20px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; align-items: center; text-align: center; border: 2px solid #334155; background: #1e293b; transition: background-color 0.15s ease, border-color 0.15s ease; }
 .back { transform: rotateY(180deg); }
 
-/* Dynamic Swipe Tint Colors */
-.card.swiping-left .card-face { background: #7f1d1d !important; border-color: #ef4444 !important; }
-.card.swiping-right .card-face { background: #065f46 !important; border-color: #10b981 !important; }
+/* Stamp Feedback Overlays */
+.stamp { position: absolute; top: 20px; font-weight: bold; font-size: 1.4rem; padding: 6px 16px; border-radius: 8px; border: 3px solid; opacity: 0; transition: opacity 0.15s ease; z-index: 10; pointer-events: none; }
+.stamp-left { right: 20px; color: #ef4444; border-color: #ef4444; transform: rotate(12deg); }
+.stamp-right { left: 20px; color: #10b981; border-color: #10b981; transform: rotate(-12deg); }
+
+/* Dynamic Swipe Tint */
+.card.swiping-left .card-face { background: #450a0a !important; border-color: #ef4444 !important; }
+.card.swiping-left .stamp-left { opacity: 1; }
+
+.card.swiping-right .card-face { background: #064e3b !important; border-color: #10b981 !important; }
+.card.swiping-right .stamp-right { opacity: 1; }
 
 .tag { font-size: 0.75rem; font-weight: bold; color: #94a3b8; letter-spacing: 1px; }
 .card-img { max-width: 100%; max-height: 180px; border-radius: 10px; margin-top: 10px; object-fit: contain; }
 
 /* Category Drop Buckets */
 .controls { display: flex; gap: 16px; padding: 20px; width: 100%; max-width: 400px; margin: 0 auto; }
-.bucket { flex: 1; padding: 16px; border: 2px dashed #334155; border-radius: 16px; text-align: center; font-weight: bold; font-size: 0.9rem; color: #94a3b8; transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease; }
-.bucket-left.active { border-color: #ef4444; background: rgba(239, 68, 68, 0.15); color: #fca5a5; transform: scale(1.05); }
-.bucket-right.active { border-color: #10b981; background: rgba(16, 185, 129, 0.15); color: #6ee7b7; transform: scale(1.05); }
+.bucket { flex: 1; padding: 16px; border: 2px dashed #334155; border-radius: 16px; text-align: center; font-weight: bold; font-size: 0.85rem; color: #94a3b8; transition: all 0.2s ease; }
+.bucket-left.active { border-color: #ef4444; background: rgba(239, 68, 68, 0.25); color: #fca5a5; transform: scale(1.08); }
+.bucket-right.active { border-color: #10b981; background: rgba(16, 185, 129, 0.25); color: #6ee7b7; transform: scale(1.08); }
+
+/* Toast Notification Confirmation */
+#toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: #38bdf8; color: #0f172a; font-weight: bold; padding: 8px 18px; border-radius: 20px; font-size: 0.85rem; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; z-index: 50; }
+#toast.show { opacity: 1; }
 
 /* Modal */
 .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 100; }

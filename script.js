@@ -15,9 +15,9 @@ function showCard() {
     const cardEl = document.getElementById('card');
     cardEl.style.transition = 'none';
     cardEl.style.transform = '';
+    cardEl.style.opacity = '1';
     cardEl.classList.remove('flipped', 'swiping-left', 'swiping-right');
     
-    // Reset buckets
     document.getElementById('bucket-left').classList.remove('active');
     document.getElementById('bucket-right').classList.remove('active');
 
@@ -41,21 +41,21 @@ function showCard() {
     }
 }
 
-// Fixed Gesture Handling (Tap vs. Swipe)
 const card = document.getElementById('card');
 const bucketLeft = document.getElementById('bucket-left');
 const bucketRight = document.getElementById('bucket-right');
+const toast = document.getElementById('toast');
 
 let startX = 0;
 let currentX = 0;
 let isDragging = false;
-let isSwipeGesture = false;
+let startTime = 0;
 
 card.addEventListener('touchstart', (e) => {
     startX = e.touches[0].clientX;
     currentX = startX;
     isDragging = true;
-    isSwipeGesture = false;
+    startTime = Date.now();
     card.style.transition = 'none';
 });
 
@@ -64,12 +64,9 @@ card.addEventListener('touchmove', (e) => {
     currentX = e.touches[0].clientX;
     let diffX = currentX - startX;
 
-    // Trigger drag mode only after passing 10px threshold
-    if (Math.abs(diffX) > 10) {
-        isSwipeGesture = true;
+    if (Math.abs(diffX) > 8) {
         card.style.transform = `translateX(${diffX}px) rotate(${diffX / 15}deg)`;
 
-        // Tint and light up bucket based on direction
         if (diffX < 0) {
             card.classList.add('swiping-left');
             card.classList.remove('swiping-right');
@@ -88,50 +85,62 @@ card.addEventListener('touchend', () => {
     if (!isDragging) return;
     isDragging = false;
     let diffX = currentX - startX;
+    let duration = Date.now() - startTime;
 
-    if (isSwipeGesture && diffX < -100) {
-        // Deposited into "Need Practice"
-        animateDeposit('left', false);
-    } else if (isSwipeGesture && diffX > 100) {
-        // Deposited into "Mastered"
-        animateDeposit('right', true);
-    } else if (!isSwipeGesture) {
-        // Instant Tap to Flip
+    // Tap Detection: Minimal drag distance + short duration
+    if (Math.abs(diffX) < 10 && duration < 300) {
         card.style.transition = 'transform 0.3s ease';
         card.classList.toggle('flipped');
-        resetDragState();
+        resetState();
+        return;
+    }
+
+    if (diffX < -90) {
+        depositCard('left', false);
+    } else if (diffX > 90) {
+        depositCard('right', true);
     } else {
-        // Snap back if threshold not met
-        card.style.transition = 'all 0.3s ease';
+        card.style.transition = 'transform 0.25s ease';
         card.style.transform = '';
-        resetDragState();
+        resetState();
     }
 });
 
-// Desktop Mouse Support
-card.addEventListener('click', () => {
-    if (!isSwipeGesture) {
+// Desktop Click Support
+card.addEventListener('click', (e) => {
+    if (Math.abs(currentX - startX) < 10) {
         card.style.transition = 'transform 0.3s ease';
         card.classList.toggle('flipped');
     }
 });
 
-function resetDragState() {
+function resetState() {
     card.classList.remove('swiping-left', 'swiping-right');
     bucketLeft.classList.remove('active');
     bucketRight.classList.remove('active');
 }
 
-function animateDeposit(direction, mastered) {
+function depositCard(direction, mastered) {
     card.style.transition = 'all 0.3s ease';
-    let targetX = direction === 'left' ? -400 : 400;
-    card.style.transform = `translateX(${targetX}px) translateY(100px) scale(0.5) rotate(${targetX / 10}deg)`;
+    let targetX = direction === 'left' ? -350 : 350;
+    
+    // Animate card dropping into the bottom bucket
+    card.style.transform = `translateX(${targetX}px) translateY(120px) scale(0.3) rotate(${targetX / 10}deg)`;
     card.style.opacity = '0';
+
+    showToast(mastered ? "Deposited into Mastered ✅" : "Deposited into Needs Practice ❌");
 
     setTimeout(() => {
         handleSwipe(mastered);
-        card.style.opacity = '1';
     }, 300);
+}
+
+function showToast(msg) {
+    toast.innerText = msg;
+    toast.classList.add('show');
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 1200);
 }
 
 function handleSwipe(mastered) {
@@ -151,7 +160,6 @@ function handleSwipe(mastered) {
     showCard();
 }
 
-// Modal Handlers
 function openModal() { document.getElementById('card-modal').style.display = 'flex'; }
 function closeModal() { document.getElementById('card-modal').style.display = 'none'; }
 
