@@ -1,4 +1,4 @@
-// Updated script.js with Google Sheet integration and Automatic Google Drive Link Formatting
+// Updated script.js with Google Sheet integration and Mobile-Compatible Google Drive Image Links
 const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSze_p4QmL1qGlhNLBs_0cZ4pDaYjj0vmvKms06KdtFuQzlQjXC2zURSJFsbRthVPSq2q71wnf7qeEQ/pub?output=csv';
 
 let fullDeck = [];
@@ -121,10 +121,10 @@ function showCard() {
     if (card.image && card.image.trim() !== '') {
         let imgUrl = card.image.trim();
         
-        // Auto-convert raw Google Drive links to direct image render URLs
+        // Auto-convert raw Google Drive links to iOS-compatible direct view URLs
         const driveMatch = imgUrl.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
         if (driveMatch && driveMatch[1]) {
-            imgUrl = `https://lh3.googleusercontent.com/d/${driveMatch[1]}`;
+            imgUrl = `https://drive.google.com/uc?export=view&id=${driveMatch[1]}`;
         }
 
         imgEl.src = imgUrl;
