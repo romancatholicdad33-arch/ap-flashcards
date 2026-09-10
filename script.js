@@ -36,7 +36,7 @@ function showCard() {
     }
 }
 
-// Fixed Touch Swiping & Tapping Logic
+// Touch Swiping Logic (Mobile)
 const card = document.getElementById('card');
 let startX = 0;
 let currentX = 0;
@@ -66,17 +66,25 @@ card.addEventListener('touchend', () => {
     let diffX = currentX - startX;
 
     if (hasMoved && diffX > 100) {
-        handleSwipe(true); // Swipe Right -> Mastered
+        handleSwipe(true);
     } else if (hasMoved && diffX < -100) {
-        handleSwipe(false); // Swipe Left -> Practice
+        handleSwipe(false);
     } else if (!hasMoved) {
-        card.classList.toggle('flipped'); // Clean Tap to Flip
+        card.classList.toggle('flipped');
         card.style.transform = '';
     } else {
         card.style.transform = '';
     }
     startX = 0;
     currentX = 0;
+});
+
+// Mouse Click Logic (Desktop)
+card.addEventListener('click', (e) => {
+    // Only flip via click if it's not a touch device trigger
+    if (e.detail !== 0 && !hasMoved) {
+        card.classList.toggle('flipped');
+    }
 });
 
 function handleSwipe(mastered) {
