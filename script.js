@@ -1,16 +1,63 @@
+const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSze_p4QmL1qGlhNLBs_0cZ4pDaYjj0vmvKms06KdtFuQzlQjXC2zURSJFsbRthVPSq2q71wnf7qeEQ/pub?output=csv';
+
 let fullDeck = [];
 let activeDeck = [];
 let currentIndex = 0;
 let userScores = JSON.parse(localStorage.getItem('ap_mastery')) || {};
 let customCards = JSON.parse(localStorage.getItem('ap_custom_cards')) || [];
 
-fetch('deck.json')
-    .then(res => res.json())
-    .then(data => {
-        fullDeck = [...data, ...customCards];
+// Fetch published CSV from Google Sheets
+fetch(GOOGLE_SHEET_CSV_URL)
+    .then(res => res.text())
+    .then(csvText => {
+        fullDeck = [...parseCSV(csvText), ...customCards];
         buildSubjectCheckboxes();
         startSession();
-    });
+    })
+    .catch(err => console.error("Error loading sheet:", err));
+
+// Lightweight CSV parser handling commas inside quotes
+function parseCSV(text) {
+    const lines = text.trim().split('\n');
+    if (lines.length < 2) return [];
+    
+    const headers = parseCSVLine(lines[0]);
+    const results = [];
+
+    for (let i = 1; i < lines.length; i++) {
+        if (!lines[i].trim()) continue;
+        const rowValues = parseCSVLine(lines[i]);
+        const row = {};
+        headers.forEach((header, idx) => {
+            row[header] = rowValues[idx] || '';
+        });
+        results.push(row);
+    }
+    return results;
+}
+
+function parseCSVLine(line) {
+    const values = [];
+    let current = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        if (char === '"' && line[i + 1] === '"') {
+            current += '"';
+            i++;
+        } else if (char === '"') {
+            inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+            values.push(current.trim());
+            current = '';
+        } else {
+            current += char;
+        }
+    }
+    values.push(current.trim());
+    return values;
+}
 
 function buildSubjectCheckboxes() {
     const subjects = [...new Set(fullDeck.map(card => card.subject || "General"))];
@@ -26,17 +73,12 @@ function buildSubjectCheckboxes() {
 }
 
 function startSession() {
-    // 1. Get selected subjects
     const checkboxes = document.querySelectorAll('#subject-checkboxes input:checked');
     const selectedSubjects = Array.from(checkboxes).map(cb => cb.value);
 
-    // 2. Filter deck by subject
     let filtered = fullDeck.filter(card => selectedSubjects.includes(card.subject || "General"));
-
-    // 3. Sort by Leitner score (lowest mastery first)
     filtered.sort((a, b) => (userScores[a.id] || 0) - (userScores[b.id] || 0));
 
-    // 4. Apply card limit
     const limitVal = document.getElementById('card-limit-select').value;
     if (limitVal !== 'all') {
         const limit = parseInt(limitVal, 10);
@@ -75,7 +117,7 @@ function showCard() {
     document.getElementById('answer-text').innerText = card.a;
     
     const imgEl = document.getElementById('card-image');
-    if (card.image) {
+    if (card.image && card.image.trim() !== '') {
         imgEl.src = card.image;
         imgEl.style.display = 'block';
     } else {
@@ -83,7 +125,7 @@ function showCard() {
     }
 }
 
-// Touch Swiping Logic
+// Touch Swiping & Click Logic
 const card = document.getElementById('card');
 const bucketLeft = document.getElementById('bucket-left');
 const bucketRight = document.getElementById('bucket-right');
@@ -148,8 +190,7 @@ card.addEventListener('touchend', () => {
     }
 });
 
-// Desktop Click Support
-card.addEventListener('click', (e) => {
+card.addEventListener('click', () => {
     if (Math.abs(currentX - startX) < 10) {
         card.style.transition = 'transform 0.3s ease';
         card.classList.toggle('flipped');
@@ -201,7 +242,6 @@ function handleSwipe(mastered) {
     showCard();
 }
 
-// Modal & Filter Handlers
 function openFilterModal() { document.getElementById('filter-modal').style.display = 'flex'; }
 function closeFilterModal() { document.getElementById('filter-modal').style.display = 'none'; }
 
