@@ -13,8 +13,13 @@ fetch('deck.json')
 
 function showCard() {
     const cardEl = document.getElementById('card');
+    cardEl.style.transition = 'none';
     cardEl.style.transform = '';
-    cardEl.classList.remove('flipped');
+    cardEl.classList.remove('flipped', 'swiping-left', 'swiping-right');
+    
+    // Reset buckets
+    document.getElementById('bucket-left').classList.remove('active');
+    document.getElementById('bucket-right').classList.remove('active');
 
     if (currentIndex >= deck.length) {
         document.getElementById('question-text').innerText = "Session Complete!";
@@ -36,27 +41,46 @@ function showCard() {
     }
 }
 
-// Touch Swiping Logic (Mobile)
+// Fixed Gesture Handling (Tap vs. Swipe)
 const card = document.getElementById('card');
+const bucketLeft = document.getElementById('bucket-left');
+const bucketRight = document.getElementById('bucket-right');
+
 let startX = 0;
 let currentX = 0;
 let isDragging = false;
-let hasMoved = false;
+let isSwipeGesture = false;
 
 card.addEventListener('touchstart', (e) => {
     startX = e.touches[0].clientX;
     currentX = startX;
     isDragging = true;
-    hasMoved = false;
+    isSwipeGesture = false;
+    card.style.transition = 'none';
 });
 
 card.addEventListener('touchmove', (e) => {
     if (!isDragging) return;
     currentX = e.touches[0].clientX;
     let diffX = currentX - startX;
+
+    // Trigger drag mode only after passing 10px threshold
     if (Math.abs(diffX) > 10) {
-        hasMoved = true;
-        card.style.transform = `translateX(${diffX}px) rotate(${diffX / 20}deg)`;
+        isSwipeGesture = true;
+        card.style.transform = `translateX(${diffX}px) rotate(${diffX / 15}deg)`;
+
+        // Tint and light up bucket based on direction
+        if (diffX < 0) {
+            card.classList.add('swiping-left');
+            card.classList.remove('swiping-right');
+            bucketLeft.classList.add('active');
+            bucketRight.classList.remove('active');
+        } else {
+            card.classList.add('swiping-right');
+            card.classList.remove('swiping-left');
+            bucketRight.classList.add('active');
+            bucketLeft.classList.remove('active');
+        }
     }
 });
 
@@ -65,27 +89,50 @@ card.addEventListener('touchend', () => {
     isDragging = false;
     let diffX = currentX - startX;
 
-    if (hasMoved && diffX > 100) {
-        handleSwipe(true);
-    } else if (hasMoved && diffX < -100) {
-        handleSwipe(false);
-    } else if (!hasMoved) {
+    if (isSwipeGesture && diffX < -100) {
+        // Deposited into "Need Practice"
+        animateDeposit('left', false);
+    } else if (isSwipeGesture && diffX > 100) {
+        // Deposited into "Mastered"
+        animateDeposit('right', true);
+    } else if (!isSwipeGesture) {
+        // Instant Tap to Flip
+        card.style.transition = 'transform 0.3s ease';
         card.classList.toggle('flipped');
-        card.style.transform = '';
+        resetDragState();
     } else {
+        // Snap back if threshold not met
+        card.style.transition = 'all 0.3s ease';
         card.style.transform = '';
+        resetDragState();
     }
-    startX = 0;
-    currentX = 0;
 });
 
-// Mouse Click Logic (Desktop)
-card.addEventListener('click', (e) => {
-    // Only flip via click if it's not a touch device trigger
-    if (e.detail !== 0 && !hasMoved) {
+// Desktop Mouse Support
+card.addEventListener('click', () => {
+    if (!isSwipeGesture) {
+        card.style.transition = 'transform 0.3s ease';
         card.classList.toggle('flipped');
     }
 });
+
+function resetDragState() {
+    card.classList.remove('swiping-left', 'swiping-right');
+    bucketLeft.classList.remove('active');
+    bucketRight.classList.remove('active');
+}
+
+function animateDeposit(direction, mastered) {
+    card.style.transition = 'all 0.3s ease';
+    let targetX = direction === 'left' ? -400 : 400;
+    card.style.transform = `translateX(${targetX}px) translateY(100px) scale(0.5) rotate(${targetX / 10}deg)`;
+    card.style.opacity = '0';
+
+    setTimeout(() => {
+        handleSwipe(mastered);
+        card.style.opacity = '1';
+    }, 300);
+}
 
 function handleSwipe(mastered) {
     if (currentIndex >= deck.length) return;
