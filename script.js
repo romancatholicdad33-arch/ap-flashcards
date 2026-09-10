@@ -1,4 +1,4 @@
-// Updated script.js with Google Sheet integration and Mobile-Compatible Google Drive Image Links
+// Updated script.js with Google Sheet integration & Mobile-Optimized Drive Image Bypass
 const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSze_p4QmL1qGlhNLBs_0cZ4pDaYjj0vmvKms06KdtFuQzlQjXC2zURSJFsbRthVPSq2q71wnf7qeEQ/pub?output=csv';
 
 let fullDeck = [];
@@ -42,7 +42,7 @@ function parseCSVLine(line) {
     let current = '';
     let inQuotes = false;
 
-    for (let i = 0; i < line.length; i++) {
+    for (let i = 1; i < line.length; i++) {
         const char = line[i];
         if (char === '"' && line[i + 1] === '"') {
             current += '"';
@@ -119,15 +119,29 @@ function showCard() {
     
     const imgEl = document.getElementById('card-image');
     if (card.image && card.image.trim() !== '') {
-        let imgUrl = card.image.trim();
+        let rawUrl = card.image.trim();
         
-        // Auto-convert raw Google Drive links to iOS-compatible direct view URLs
-        const driveMatch = imgUrl.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
+        // Extract Google Drive File ID from standard share link formats
+        const driveMatch = rawUrl.match(/(?:file\/d\/|id=|\/d\/)([a-zA-Z0-9_-]+)/);
+        
         if (driveMatch && driveMatch[1]) {
-            imgUrl = `https://drive.google.com/uc?export=view&id=${driveMatch[1]}`;
+            const fileId = driveMatch[1];
+            // High-resolution Google Content CDN link (bypasses iOS Safari cookie blocks)
+            const primaryUrl = `https://lh3.googleusercontent.com/d/${fileId}=s1600`;
+            const fallbackUrl = `https://drive.google.com/uc?export=view&id=${fileId}`;
+
+            imgEl.onerror = function() {
+                if (this.src !== fallbackUrl) {
+                    this.src = fallbackUrl;
+                }
+            };
+
+            imgEl.src = primaryUrl;
+        } else {
+            imgEl.onerror = null;
+            imgEl.src = rawUrl;
         }
 
-        imgEl.src = imgUrl;
         imgEl.style.display = 'block';
     } else {
         imgEl.style.display = 'none';
