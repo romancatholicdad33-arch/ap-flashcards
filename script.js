@@ -1,4 +1,4 @@
-// script.js - Updated for Direct GitHub Image Hosting
+// script.js - Updated for Direct GitHub Images & Instant iOS Tap Response
 const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSze_p4QmL1qGlhNLBs_0cZ4pDaYjj0vmvKms06KdtFuQzlQjXC2zURSJFsbRthVPSq2q71wnf7qeEQ/pub?output=csv';
 
 let fullDeck = [];
@@ -42,7 +42,7 @@ function parseCSVLine(line) {
     let current = '';
     let inQuotes = false;
 
-    for (let i = 1; i < line.length; i++) {
+    for (let i = 0; i < line.length; i++) {
         const char = line[i];
         if (char === '"' && line[i + 1] === '"') {
             current += '"';
@@ -126,31 +126,40 @@ function showCard() {
     }
 }
 
-// Touch Swiping & Click Logic
+// Touch Swiping & Direct Tap Logic
 const card = document.getElementById('card');
 const bucketLeft = document.getElementById('bucket-left');
 const bucketRight = document.getElementById('bucket-right');
 const toast = document.getElementById('toast');
 
 let startX = 0;
+let startY = 0;
 let currentX = 0;
+let currentY = 0;
 let isDragging = false;
-let startTime = 0;
+let hasMoved = false;
 
 card.addEventListener('touchstart', (e) => {
     startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
     currentX = startX;
+    currentY = startY;
     isDragging = true;
-    startTime = Date.now();
+    hasMoved = false;
     card.style.transition = 'none';
-});
+}, { passive: true });
 
 card.addEventListener('touchmove', (e) => {
     if (!isDragging) return;
     currentX = e.touches[0].clientX;
+    currentY = e.touches[0].clientY;
+    
     let diffX = currentX - startX;
+    let diffY = currentY - startY;
 
-    if (Math.abs(diffX) > 8) {
+    // Only initiate swipe if horizontal movement clearly exceeds vertical scroll
+    if (Math.abs(diffX) > 10 && Math.abs(diffX) > Math.abs(diffY)) {
+        hasMoved = true;
         card.style.transform = `translateX(${diffX}px) rotate(${diffX / 15}deg)`;
 
         if (diffX < 0) {
@@ -165,21 +174,22 @@ card.addEventListener('touchmove', (e) => {
             bucketLeft.classList.remove('active');
         }
     }
-});
+}, { passive: true });
 
 card.addEventListener('touchend', () => {
     if (!isDragging) return;
     isDragging = false;
     let diffX = currentX - startX;
-    let duration = Date.now() - startTime;
 
-    if (Math.abs(diffX) < 10 && duration < 300) {
-        card.style.transition = 'transform 0.3s ease';
+    // Direct Tap: If fingers didn't drag horizontally, flip immediately
+    if (!hasMoved && Math.abs(diffX) < 10) {
+        card.style.transition = 'transform 0.25s ease';
         card.classList.toggle('flipped');
         resetState();
         return;
     }
 
+    // Swipe Thresholds
     if (diffX < -90) {
         depositCard('left', false);
     } else if (diffX > 90) {
@@ -188,13 +198,6 @@ card.addEventListener('touchend', () => {
         card.style.transition = 'transform 0.25s ease';
         card.style.transform = '';
         resetState();
-    }
-});
-
-card.addEventListener('click', () => {
-    if (Math.abs(currentX - startX) < 10) {
-        card.style.transition = 'transform 0.3s ease';
-        card.classList.toggle('flipped');
     }
 });
 
