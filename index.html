@@ -1,89 +1,232 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>A&P Flashcard Mastery</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="manifest.json">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <base target="_top">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f4f6f9; color: #333; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 90vh; }
+    .container { background: #fff; width: 100%; max-width: 600px; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+    h2 { margin-top: 0; color: #1a1a1a; }
+    .btn { background: #0066cc; color: white; border: none; padding: 12px 20px; font-size: 16px; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 15px; font-weight: 600; }
+    .btn:hover { background: #0052a3; }
+    .hidden { display: none !important; }
+    
+    /* Start Screen Styles */
+    .form-group { margin-bottom: 20px; }
+    label { display: block; margin-bottom: 8px; font-weight: 600; }
+    select { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 16px; }
+    
+    /* Card Styles */
+    .card-box { border: 1px solid #e1e4e8; border-radius: 8px; padding: 20px; min-height: 180px; margin-bottom: 20px; background: #fafbfc; display: flex; flex-direction: column; justify-content: space-between; }
+    .card-text { font-size: 18px; line-height: 1.5; margin-bottom: 15px; }
+    .card-image { max-width: 100%; height: auto; border-radius: 6px; margin-top: 10px; max-height: 200px; object-fit: contain; }
+    
+    /* Tiers Buttons */
+    .rating-container { display: flex; gap: 10px; }
+    .btn-red { background: #d93838; flex: 1; }
+    .btn-red:hover { background: #b52a2a; }
+    .btn-orange { background: #e69500; flex: 1; }
+    .btn-orange:hover { background: #c27d00; }
+    .btn-green { background: #28a745; flex: 1; }
+    .btn-green:hover { background: #218838; }
+    
+    /* End Screen Styles */
+    .metric-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; font-size: 16px; }
+    .insight-box { background: #eef6fc; border-left: 4px solid #0066cc; padding: 15px; border-radius: 0 8px 8px 0; margin-top: 20px; font-style: italic; color: #1f4e79; }
+  </style>
 </head>
 <body>
 
-    <header>
-        <h1 id="subject-title">A&P Study</h1>
-        <div class="header-buttons">
-            <button onclick="openFilterModal()">Options</button>
-            <button onclick="openModal()">+ Card</button>
+  <div class="container">
+    
+    <!-- 1. START OF SESSION PAGE -->
+    <div id="start-screen">
+      <h2>Study Session Setup</h2>
+      <div class="form-group">
+        <label for="mode-select">Session Mode:</label>
+        <select id="mode-select" onchange="toggleSubjectDropdown()">
+          <option value="Cumulative">Cumulative Mix (Interleaved Practice)</option>
+          <option value="Blocked">Focused Study (Single Module)</option>
+        </select>
+      </div>
+      
+      <div id="subject-group" class="form-group hidden">
+        <label for="subject-select">Select Module/Subject:</label>
+        <select id="subject-select">
+          <option value="Materials">Materials</option>
+          <option value="Aircraft Drawing">Aircraft Drawing</option>
+          <!-- Add more modules as needed -->
+        </select>
+      </div>
+      
+      <div id="queue-snapshot" style="margin: 20px 0; font-size: 15px; color: #555;">
+        📊 Ready to load session queue...
+      </div>
+      
+      <button class="btn" onclick="startSession()">Start Session ➔</button>
+    </div>
+
+    <!-- 2. ACTIVE STUDY SESSION SCREEN -->
+    <div id="study-screen" class="hidden">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 10px; color: #666; font-size: 14px;">
+        <span id="progress-indicator">Card 1 of 10</span>
+        <span id="card-subject-tag">Subject</span>
+      </div>
+
+      <div class="card-box">
+        <div id="card-content">
+          <!-- FRONT CONTENT (Question & Image explicitly on the front) -->
+          <div id="front-section">
+            <div id="q-text" class="card-text">Question goes here</div>
+            <img id="q-image" class="card-image hidden" alt="Card Illustration">
+          </div>
+          
+          <!-- BACK CONTENT (Answer) -->
+          <div id="back-section" class="hidden" style="border-top: 1px dashed #ccc; padding-top: 15px; margin-top: 15px;">
+            <div id="a-text" class="card-text" style="color: #0066cc; font-weight: 500;">Answer goes here</div>
+          </div>
         </div>
-    </header>
+      </div>
 
-    <div id="progress-bar">
-        <span id="progress">Loading cards...</span>
+      <button id="show-answer-btn" class="btn" onclick="showAnswer()">Show Answer</button>
+
+      <!-- THREE-TIER RATING BUTTONS (Hidden until answer is shown) -->
+      <div id="rating-buttons" class="rating-container hidden">
+        <button class="btn btn-red" onclick="rateCard('Red')">Red (Lapsed)</button>
+        <button class="btn btn-orange" onclick="rateCard('Orange')">Orange (Effort)</button>
+        <button class="btn btn-green" onclick="rateCard('Green')">Green (Mastered)</button>
+      </div>
     </div>
 
-    <!-- Flashcard Container -->
-    <div class="scene">
-        <div id="card">
-            <!-- Front Face -->
-            <div class="card-face card-front">
-                <span class="card-subject" id="subject-title-front">Subject</span>
-                <div class="card-text" id="question-text">Loading question...</div>
-                <span style="font-size: 0.75rem; color: #aaa;">Tap to flip</span>
-            </div>
-            <!-- Back Face -->
-            <div class="card-face card-back">
-                <span class="card-subject">Answer</span>
-                <img id="card-image" src="" alt="Diagram">
-                <div class="card-text" id="answer-text">Loading answer...</div>
-                <span style="font-size: 0.75rem; color: #007aff;">Swipe Left (Hard) | Down (Good) | Right (Easy)</span>
-            </div>
-        </div>
+    <!-- 3. END OF SESSION SUMMARY SCREEN -->
+    <div id="end-screen" class="hidden">
+      <h2>Session Complete! 🎉</h2>
+      <p style="color: #666;">Here is your performance breakdown for this sitting:</p>
+      
+      <div class="metric-row">
+        <span>🟢 Mastered (Green):</span>
+        <strong id="stat-green">0</strong>
+      </div>
+      <div class="metric-row">
+        <span>🟠 Retained with Effort (Orange):</span>
+        <strong id="stat-orange">0</strong>
+      </div>
+      <div class="metric-row">
+        <span>🔴 Lapsed (Red - Queued for next session):</span>
+        <strong id="stat-red">0</strong>
+      </div>
+
+      <div class="insight-box" id="insight-text">
+        “You fought through high-friction Orange cards today—that active retrieval is where the real memory growth happens.”
+      </div>
+
+      <button class="btn" onclick="location.reload()">Return to Home</button>
     </div>
 
-    <!-- 3-Tier Swipe Buckets Visual Feedback -->
-    <div class="buckets">
-        <div id="bucket-left" class="bucket">Hard</div>
-        <div id="bucket-center" class="bucket">Good</div>
-        <div id="bucket-right" class="bucket">Easy</div>
-    </div>
+  </div>
 
-    <div id="toast">Feedback</div>
+  <script>
+    var currentQueue = [];
+    var currentIndex = 0;
+    var sessionStats = { green: 0, orange: 0, red: 0 };
 
-    <!-- Study Options / Filter Modal -->
-    <div id="filter-modal" class="modal">
-        <div class="modal-content">
-            <h3>Study Options</h3>
-            <label style="font-size: 0.85rem; font-weight: 600;">Select Subjects:</label>
-            <div id="subject-checkboxes" class="checkbox-group">
-                <!-- Dynamically populated subjects -->
-            </div>
-            <label style="font-size: 0.85rem; font-weight: 600; margin-top: 8px;">Card Session Limit:</label>
-            <select id="card-limit-select">
-                <option value="all">All Cards</option>
-                <option value="15">15 Cards</option>
-                <option value="30">30 Cards</option>
-                <option value="50">50 Cards</option>
-            </select>
-            <button onclick="applyFilters()">Start Session</button>
-            <button style="background-color: #8e8e93;" onclick="closeFilterModal()">Cancel</button>
-        </div>
-    </div>
+    function toggleSubjectDropdown() {
+      var mode = document.getElementById("mode-select").value;
+      var subjectGroup = document.getElementById("subject-group");
+      if (mode === "Blocked") {
+        subjectGroup.classList.remove("hidden");
+      } else {
+        subjectGroup.classList.add("hidden");
+      }
+    }
 
-    <!-- Add Custom Card Modal -->
-    <div id="card-modal" class="modal">
-        <div class="modal-content">
-            <h3>Add Custom Card</h3>
-            <input type="text" id="new-subject" placeholder="Subject (e.g., Materials)">
-            <input type="text" id="new-q" placeholder="Question">
-            <input type="text" id="new-a" placeholder="Answer">
-            <input type="text" id="new-img" placeholder="Image Raw GitHub URL (Optional)">
-            <button onclick="saveNewCard()">Save Card</button>
-            <button style="background-color: #8e8e93;" onclick="closeModal()">Cancel</button>
-        </div>
-    </div>
+    function startSession() {
+      var mode = document.getElementById("mode-select").value;
+      var subject = document.getElementById("subject-select").value;
 
-    <script src="script.js"></script>
+      // Call backend Google Apps Script function
+      google.script.run
+        .withSuccessHandler(function(response) {
+          currentQueue = response.cards;
+          if (currentQueue.length === 0) {
+            alert("No cards due for review in this mode right now!");
+            return;
+          }
+          
+          // Switch screens
+          document.getElementById("start-screen").classList.add("hidden");
+          document.getElementById("study-screen").classList.remove("hidden");
+          loadCard();
+        })
+        .getSessionQueue(mode, subject);
+    }
+
+    function loadCard() {
+      if (currentIndex >= currentQueue.length) {
+        showEndScreen();
+        return;
+      }
+
+      var card = currentQueue[currentIndex];
+      
+      // Update header progress
+      document.getElementById("progress-indicator").innerText = "Card " + (currentIndex + 1) + " of " + currentQueue.length;
+      document.getElementById("card-subject-tag").innerText = card.subject;
+
+      // Populate front data (Image explicitly mapped to the front!)
+      document.getElementById("q-text").innerText = card.frontText;
+      var imgElement = document.getElementById("q-image");
+      if (card.frontImage && card.frontImage.trim() !== "") {
+        imgElement.src = card.frontImage;
+        imgElement.classList.remove("hidden");
+      } else {
+        imgElement.classList.add("hidden");
+      }
+
+      // Populate back data
+      document.getElementById("a-text").innerText = card.backText;
+
+      // Reset view states
+      document.getElementById("back-section").classList.add("hidden");
+      document.getElementById("show-answer-btn").classList.remove("hidden");
+      document.getElementById("rating-buttons").classList.add("hidden");
+    }
+
+    function showAnswer() {
+      document.getElementById("back-section").classList.remove("hidden");
+      document.getElementById("show-answer-btn").classList.add("hidden");
+      document.getElementById("rating-buttons").classList.remove("hidden");
+    }
+
+    function rateCard(rating) {
+      var card = currentQueue[currentIndex];
+      
+      // Track stats for end screen
+      if (rating === "Green") sessionStats.green++;
+      else if (rating === "Orange") sessionStats.orange++;
+      else if (rating === "Red") sessionStats.red++;
+
+      // Send rating to backend script to update sheet tracking columns
+      google.script.run.processCardReview(card.rowIndex, rating);
+
+      // Advance to next card in finite queue (Hard Stop enforcement)
+      currentIndex++;
+      loadCard();
+    }
+
+    function showEndScreen() {
+      document.getElementById("study-screen").classList.add("hidden");
+      document.getElementById("end-screen").classList.remove("hidden");
+
+      // Fill in final metrics dashboard
+      document.getElementById("stat-green").innerText = sessionStats.green;
+      document.getElementById("stat-orange").innerText = sessionStats.orange;
+      document.getElementById("stat-red").innerText = sessionStats.red;
+      
+      if (sessionStats.orange > 0) {
+        document.getElementById("insight-text").innerText = 
+          `“You successfully worked through ${sessionStats.orange} high-friction Orange cards today—that active retrieval is where the real memory growth happens.”`;
+      }
+    }
+  </script>
 </body>
 </html>
