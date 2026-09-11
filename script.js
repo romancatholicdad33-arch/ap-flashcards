@@ -1,10 +1,10 @@
-// script.js - Updated with Cooldown Spacing, Multiline-Safe CSV Parser, and Randomized Shuffling
+// script.js - Randomized Shuffling, 3-Tier Spaced Cooldown, & Multiline CSV Parser
 const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSze_p4QmL1qGlhNLBs_0cZ4pDaYjj0vmvKms06KdtFuQzlQjXC2zURSJFsbRthVPSq2q71wnf7qeEQ/pub?output=csv';
 
 let fullDeck = [];
 let activeDeck = [];
 let currentIndex = 0;
-// userScores tracks object data: { streak: number, cooldownIndex: number }
+// userScores tracks object data: { streak: number }
 let userScores = JSON.parse(localStorage.getItem('ap_mastery')) || {};
 let customCards = JSON.parse(localStorage.getItem('ap_custom_cards')) || [];
 
@@ -100,7 +100,7 @@ function startSession() {
 
     let filtered = fullDeck.filter(card => selectedSubjects.includes(card.subject || "General"));
     
-    // Randomize the order of cards initially so they don't follow sheet sequence
+    // Randomize the order of cards initially
     shuffleArray(filtered);
 
     const limitVal = document.getElementById('card-limit-select').value;
@@ -120,9 +120,10 @@ function showCard() {
     cardEl.style.transition = 'none';
     cardEl.style.transform = '';
     cardEl.style.opacity = '1';
-    cardEl.classList.remove('flipped', 'swiping-left', 'swiping-right');
+    cardEl.classList.remove('flipped', 'swiping-left', 'swiping-right', 'swiping-down');
     
     document.getElementById('bucket-left').classList.remove('active');
+    document.getElementById('bucket-center').classList.remove('active');
     document.getElementById('bucket-right').classList.remove('active');
 
     if (activeDeck.length === 0 || currentIndex >= activeDeck.length) {
@@ -150,9 +151,10 @@ function showCard() {
     }
 }
 
-// Touch Swiping & Direct Tap Logic
+// Touch Swiping & 3-Way Gestures (Left = Hard, Down = Good, Right = Easy)
 const card = document.getElementById('card');
 const bucketLeft = document.getElementById('bucket-left');
+const bucketCenter = document.getElementById('bucket-center');
 const bucketRight = document.getElementById('bucket-right');
 const toast = document.getElementById('toast');
 
@@ -181,19 +183,31 @@ card.addEventListener('touchmove', (e) => {
     let diffX = currentX - startX;
     let diffY = currentY - startY;
 
-    if (Math.abs(diffX) > 10 && Math.abs(diffX) > Math.abs(diffY)) {
+    // Check if dragging downward vs horizontally
+    if (diffY > 15 && diffY > Math.abs(diffX)) {
+        hasMoved = true;
+        card.style.transform = `translateY(${diffY}px) rotate(${diffY / 30}deg)`;
+        card.classList.add('swiping-down');
+        card.classList.remove('swiping-left', 'swiping-right');
+        
+        bucketCenter.classList.add('active');
+        bucketLeft.classList.remove('active');
+        bucketRight.classList.remove('active');
+    } else if (Math.abs(diffX) > 15 && Math.abs(diffX) >= diffY) {
         hasMoved = true;
         card.style.transform = `translateX(${diffX}px) rotate(${diffX / 15}deg)`;
 
         if (diffX < 0) {
             card.classList.add('swiping-left');
-            card.classList.remove('swiping-right');
+            card.classList.remove('swiping-right', 'swiping-down');
             bucketLeft.classList.add('active');
+            bucketCenter.classList.remove('active');
             bucketRight.classList.remove('active');
         } else {
             card.classList.add('swiping-right');
-            card.classList.remove('swiping-left');
+            card.classList.remove('swiping-left', 'swiping-down');
             bucketRight.classList.add('active');
+            bucketCenter.classList.remove('active');
             bucketLeft.classList.remove('active');
         }
     }
@@ -203,18 +217,21 @@ card.addEventListener('touchend', () => {
     if (!isDragging) return;
     isDragging = false;
     let diffX = currentX - startX;
+    let diffY = currentY - startY;
 
-    if (!hasMoved && Math.abs(diffX) < 10) {
+    if (!hasMoved && Math.abs(diffX) < 10 && Math.abs(diffY) < 10) {
         card.style.transition = 'transform 0.25s ease';
         card.classList.toggle('flipped');
         resetState();
         return;
     }
 
-    if (diffX < -90) {
-        depositCard('left', false);
-    } else if (diffX > 90) {
-        depositCard('right', true);
+    if (diffY > 80 && diffY > Math.abs(diffX)) {
+        depositCard('down', 'good');
+    } else if (diffX < -80) {
+        depositCard('left', 'hard');
+    } else if (diffX > 80) {
+        depositCard('right', 'easy');
     } else {
         card.style.transition = 'transform 0.25s ease';
         card.style.transform = '';
@@ -223,22 +240,30 @@ card.addEventListener('touchend', () => {
 });
 
 function resetState() {
-    card.classList.remove('swiping-left', 'swiping-right');
+    card.classList.remove('swiping-left', 'swiping-right', 'swiping-down');
     bucketLeft.classList.remove('active');
+    bucketCenter.classList.remove('active');
     bucketRight.classList.remove('active');
 }
 
-function depositCard(direction, mastered) {
+function depositCard(direction, rating) {
     card.style.transition = 'all 0.3s ease';
-    let targetX = direction === 'left' ? -350 : 350;
     
-    card.style.transform = `translateX(${targetX}px) translateY(120px) scale(0.3) rotate(${targetX / 10}deg)`;
+    if (direction === 'down') {
+        card.style.transform = `translateY(350px) scale(0.3) rotate(10deg)`;
+        showToast("Logged as Good ⚠️");
+    } else if (direction === 'left') {
+        card.style.transform = `translateX(-350px) translateY(120px) scale(0.3) rotate(-25deg)`;
+        showToast("Logged as Hard ❌");
+    } else {
+        card.style.transform = `translateX(350px) translateY(120px) scale(0.3) rotate(25deg)`;
+        showToast("Logged as Easy ✅");
+    }
+    
     card.style.opacity = '0';
 
-    showToast(mastered ? "Deposited into Mastered ✅" : "Deposited into Needs Practice ❌");
-
     setTimeout(() => {
-        handleSwipe(mastered);
+        handleRating(rating);
     }, 300);
 }
 
@@ -250,32 +275,33 @@ function showToast(msg) {
     }, 1200);
 }
 
-function handleSwipe(mastered) {
+function handleRating(rating) {
     if (currentIndex >= activeDeck.length) return;
     const activeCard = activeDeck[currentIndex];
     
-    // Support legacy numeric scores or upgrade to object tracking
     let cardData = userScores[activeCard.id];
     if (typeof cardData !== 'object' || cardData === null) {
         cardData = { streak: typeof cardData === 'number' ? cardData : 0 };
     }
 
-    if (mastered) {
-        cardData.streak += 1;
-        // Spaced Spacing Logic: Insert the mastered card further down into the active queue
-        // based on streak depth (e.g. 4 to 8 cards down) so it reappears later spaced out
-        let insertOffset = Math.min(cardData.streak * 3 + 2, activeDeck.length - currentIndex);
-        activeDeck.splice(currentIndex + insertOffset, 0, activeCard);
-        
-        userScores[activeCard.id] = cardData;
-    } else {
-        // Needs practice: reset streak and re-insert very close to current spot (3 cards down)
+    let insertOffset = 3;
+
+    if (rating === 'hard') {
         cardData.streak = 0;
-        userScores[activeCard.id] = cardData;
-        activeDeck.splice(currentIndex + 3, 0, activeCard);
+        insertOffset = 2; // Re-insert very close for immediate drill
+    } else if (rating === 'good') {
+        cardData.streak += 1;
+        insertOffset = Math.min(cardData.streak * 2 + 4, activeDeck.length - currentIndex); // Moderate gap
+    } else if (rating === 'easy') {
+        cardData.streak += 2;
+        insertOffset = Math.min(cardData.streak * 3 + 8, activeDeck.length - currentIndex); // Deep spaced gap
     }
 
+    userScores[activeCard.id] = cardData;
     localStorage.setItem('ap_mastery', JSON.stringify(userScores));
+
+    // Re-queue card further down based on Spaced Cooldown logic
+    activeDeck.splice(currentIndex + insertOffset, 0, activeCard);
     currentIndex++;
     showCard();
 }

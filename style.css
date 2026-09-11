@@ -5,7 +5,7 @@
     padding: 0;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     -webkit-tap-highlight-color: transparent;
-    -webkit-touch-callout: none; /* Prevents callout popup on iOS tap-hold */
+    -webkit-touch-callout: none;
 }
 
 body {
@@ -138,7 +138,7 @@ button:active {
 
 .card-text {
     font-size: 1.05rem;
-    line-height: 1.4;
+    line-height: 1.5;
     color: #1c1c1e;
     display: flex;
     align-items: center;
@@ -147,6 +147,7 @@ button:active {
     overflow-y: auto;
     width: 100%;
     padding: 0 4px;
+    white-space: pre-line;
 }
 
 /* Responsive Image Scaling */
@@ -172,9 +173,9 @@ button:active {
 }
 
 .bucket {
-    padding: 10px 16px;
+    padding: 10px 14px;
     border-radius: 20px;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     font-weight: 600;
     opacity: 0.4;
     transition: opacity 0.2s ease, transform 0.2s ease;
@@ -183,6 +184,11 @@ button:active {
 #bucket-left {
     background-color: #ffe5e5;
     color: #ff3b30;
+}
+
+#bucket-center {
+    background-color: #fff3cd;
+    color: #ff9500;
 }
 
 #bucket-right {
@@ -195,9 +201,13 @@ button:active {
     transform: scale(1.1);
 }
 
-/* Swipe Transformations */
+/* Swipe / Drag Border Feedback */
 #card.swiping-left {
     border: 2px solid #ff3b30;
+}
+
+#card.swiping-down {
+    border: 2px solid #ff9500;
 }
 
 #card.swiping-right {

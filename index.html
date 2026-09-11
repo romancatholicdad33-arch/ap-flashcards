@@ -3,81 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>A&P Flashcards</title>
+    <title>A&P Flashcard Mastery</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
 <body>
 
-    <!-- Header Controls -->
     <header>
-        <h1>A&P Study</h1>
+        <h1 id="subject-title">A&P Study</h1>
         <div class="header-buttons">
-            <button type="button" onclick="openFilterModal()">Options</button>
-            <button type="button" onclick="openModal()">+ Add</button>
+            <button onclick="openFilterModal()">Options</button>
+            <button onclick="openModal()">+ Card</button>
         </div>
     </header>
 
-    <!-- Session Progress -->
     <div id="progress-bar">
-        <span id="subject-title">Loading...</span> | <span id="progress">Card 0 of 0</span>
+        <span id="progress">Loading cards...</span>
     </div>
 
-    <!-- Interactive Card Scene Container -->
+    <!-- Flashcard Container -->
     <div class="scene">
         <div id="card">
             <!-- Front Face -->
             <div class="card-face card-front">
-                <div class="card-subject" id="subject-title-front">Question</div>
-                <img id="card-image" src="" alt="Flashcard Diagram" style="display: none;">
-                <div class="card-text" id="question-text">Loading flashcards...</div>
+                <span class="card-subject" id="subject-title-front">Subject</span>
+                <div class="card-text" id="question-text">Loading question...</div>
+                <span style="font-size: 0.75rem; color: #aaa;">Tap to flip</span>
             </div>
             <!-- Back Face -->
             <div class="card-face card-back">
-                <div class="card-subject">Answer</div>
-                <div class="card-text" id="answer-text">Flip to reveal</div>
+                <span class="card-subject">Answer</span>
+                <img id="card-image" src="" alt="Diagram">
+                <div class="card-text" id="answer-text">Loading answer...</div>
+                <span style="font-size: 0.75rem; color: #007aff;">Swipe Left (Hard) | Down (Good) | Right (Easy)</span>
             </div>
         </div>
     </div>
 
-    <!-- Swipe Bucket Indicators -->
+    <!-- 3-Tier Swipe Buckets Visual Feedback -->
     <div class="buckets">
-        <div id="bucket-left" class="bucket">❌ Practice</div>
-        <div id="bucket-right" class="bucket">✅ Mastered</div>
+        <div id="bucket-left" class="bucket">Hard</div>
+        <div id="bucket-center" class="bucket">Good</div>
+        <div id="bucket-right" class="bucket">Easy</div>
     </div>
 
-    <!-- Toast Notification -->
-    <div id="toast"></div>
+    <div id="toast">Feedback</div>
 
-    <!-- Study Options & Subject Filter Modal -->
+    <!-- Study Options / Filter Modal -->
     <div id="filter-modal" class="modal">
         <div class="modal-content">
-            <h2>Study Options</h2>
-            <label><strong>Select Subjects:</strong></label>
-            <div id="subject-checkboxes" class="checkbox-group"></div>
-            
-            <label for="card-limit-select"><strong>Card Limit:</strong></label>
+            <h3>Study Options</h3>
+            <label style="font-size: 0.85rem; font-weight: 600;">Select Subjects:</label>
+            <div id="subject-checkboxes" class="checkbox-group">
+                <!-- Dynamically populated subjects -->
+            </div>
+            <label style="font-size: 0.85rem; font-weight: 600; margin-top: 8px;">Card Session Limit:</label>
             <select id="card-limit-select">
-                <option value="all">All Available</option>
-                <option value="10">10 Cards</option>
-                <option value="25">25 Cards</option>
+                <option value="all">All Cards</option>
+                <option value="15">15 Cards</option>
+                <option value="30">30 Cards</option>
                 <option value="50">50 Cards</option>
             </select>
-
-            <button type="button" onclick="applyFilters()">Apply & Restart</button>
-            <button type="button" onclick="closeFilterModal()" style="background:#8e8e93;">Close</button>
+            <button onclick="applyFilters()">Start Session</button>
+            <button style="background-color: #8e8e93;" onclick="closeFilterModal()">Cancel</button>
         </div>
     </div>
 
     <!-- Add Custom Card Modal -->
     <div id="card-modal" class="modal">
         <div class="modal-content">
-            <h2>Add Custom Card</h2>
-            <input type="text" id="new-subject" placeholder="Subject (e.g., General, Airframe)">
+            <h3>Add Custom Card</h3>
+            <input type="text" id="new-subject" placeholder="Subject (e.g., Materials)">
             <input type="text" id="new-q" placeholder="Question">
             <input type="text" id="new-a" placeholder="Answer">
-            <input type="text" id="new-img" placeholder="Image Path/URL (Optional)">
-            <button type="button" onclick="saveNewCard()">Save Card</button>
-            <button type="button" onclick="closeModal()" style="background:#8e8e93;">Cancel</button>
+            <input type="text" id="new-img" placeholder="Image Raw GitHub URL (Optional)">
+            <button onclick="saveNewCard()">Save Card</button>
+            <button style="background-color: #8e8e93;" onclick="closeModal()">Cancel</button>
         </div>
     </div>
 
