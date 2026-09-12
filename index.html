@@ -8,19 +8,20 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       background-color: #f4f6f9;
       margin: 0;
-      padding: 10px;
+      padding: 8px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
-      min-height: 100vh;
+      justify-content: space-between;
+      height: 100vh;
       box-sizing: border-box;
       color: #333;
+      overflow: hidden;
     }
 
     h2 {
-      margin: 5px 0 15px 0;
-      font-size: 1.3rem;
+      margin: 2px 0 5px 0;
+      font-size: 1.2rem;
       color: #1a202c;
     }
 
@@ -30,7 +31,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      flex: 1;
+      height: 100%;
     }
 
     /* Setup / Menu View */
@@ -81,7 +82,7 @@
       background-color: #2b6cb0;
     }
 
-    /* Study View & Big Card Layout */
+    /* Study View & Maximized Card Layout */
     #study-view {
       display: none;
       flex-direction: column;
@@ -89,12 +90,14 @@
       width: 100%;
       flex: 1;
       box-sizing: border-box;
+      justify-content: space-between;
+      padding-bottom: 10px;
     }
 
     .progress-indicator {
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       color: #718096;
-      margin-bottom: 10px;
+      margin-bottom: 2px;
       font-weight: 500;
     }
 
@@ -105,20 +108,18 @@
       justify-content: center;
       align-items: center;
       perspective: 1000px;
-      margin-bottom: 20px;
-      min-height: 380px;
+      margin: 5px 0;
     }
 
     .flashcard {
-      width: 92%;
-      max-width: 480px;
-      height: 70vh;
-      max-height: 520px;
-      min-height: 350px;
+      width: 96%;
+      max-width: 520px;
+      height: 76vh;
+      max-height: 600px;
       background: white;
-      border-radius: 16px;
+      border-radius: 18px;
       box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-      padding: 24px;
+      padding: 20px;
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
@@ -137,7 +138,7 @@
     }
 
     .card-header-tag {
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       text-transform: uppercase;
       letter-spacing: 1px;
       color: #a0aec0;
@@ -145,26 +146,26 @@
     }
 
     .card-body {
-      font-size: 1.3rem;
+      font-size: 1.25rem;
       color: #2d3748;
-      line-height: 1.5;
+      line-height: 1.4;
       overflow-y: auto;
       width: 100%;
-      padding: 10px 0;
+      padding: 5px 0;
       white-space: pre-line;
       margin: auto 0;
     }
 
     .card-footer-hint {
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       color: #cbd5e0;
     }
 
     .card-image {
       max-width: 100%;
-      max-height: 150px;
+      max-height: 240px; /* Big, clear view for technical diagrams and images */
       border-radius: 8px;
-      margin-top: 10px;
+      margin: 8px 0;
       object-fit: contain;
     }
 
@@ -172,17 +173,17 @@
     .controls {
       display: flex;
       gap: 10px;
-      width: 92%;
-      max-width: 480px;
-      margin-bottom: 15px;
+      width: 96%;
+      max-width: 520px;
+      margin-bottom: 8px;
     }
 
     .rate-btn {
       flex: 1;
-      padding: 14px 8px;
+      padding: 12px 6px;
       border: none;
       border-radius: 10px;
-      font-size: 1rem;
+      font-size: 0.95rem;
       font-weight: bold;
       color: white;
       cursor: pointer;
@@ -199,16 +200,17 @@
     }
 
     .menu-btn-bar {
-      margin-bottom: 20px;
+      margin-bottom: 5px;
     }
 
     .secondary-btn {
       background: #edf2f7;
       color: #4a5568;
       border: none;
-      padding: 10px 20px;
+      padding: 8px 16px;
       border-radius: 8px;
       font-weight: 600;
+      font-size: 0.9rem;
       cursor: pointer;
     }
 
@@ -280,9 +282,9 @@
       </div>
 
       <div class="controls">
-        <button class="rate-btn btn-again" onclick="handleRating('again')">Again</button>
-        <button class="rate-btn btn-hard" onclick="handleRating('hard')">Hard</button>
-        <button class="rate-btn btn-easy" onclick="handleRating('easy')">Easy</button>
+        <button class="rate-btn btn-again" onclick="handleRating('again')">Again (Left)</button>
+        <button class="rate-btn btn-hard" onclick="handleRating('hard')">Hard (Down)</button>
+        <button class="rate-btn btn-easy" onclick="handleRating('easy')">Easy (Right)</button>
       </div>
 
       <div class="menu-btn-bar">
@@ -296,9 +298,9 @@
     var currentIndex = 0;
     var isFlipped = false;
 
-    // Drag / Swipe State Variables
-    var startX = 0;
-    var currentX = 0;
+    // Drag & Swipe State Variables
+    var startX = 0, startY = 0;
+    var currentX = 0, currentY = 0;
     var isDragging = false;
     var cardElement = document.getElementById('flashcard');
 
@@ -361,12 +363,12 @@
       document.getElementById('progress-indicator').innerText = 'Card ' + (currentIndex + 1) + ' of ' + queue.length;
       
       // Reset position/transform
-      cardElement.style.transform = 'translateX(0px) rotate(0deg)';
+      cardElement.style.transform = 'translate(0px, 0px) rotate(0deg)';
       cardElement.style.backgroundColor = '#ffffff';
     }
 
     function toggleFlip() {
-      if (isDragging) return; // Prevent accidental flip during swipe drag
+      if (isDragging) return; 
       var card = queue[currentIndex];
       isFlipped = !isFlipped;
       if (isFlipped) {
@@ -381,9 +383,10 @@
     function handleRating(rating) {
       var card = queue[currentIndex];
       
-      // Animate fly off based on button rating
+      // Fly off animation per rating direction
       var flyX = rating === 'again' ? -400 : (rating === 'easy' ? 400 : 0);
-      var flyY = rating === 'hard' ? 300 : 0;
+      var flyY = rating === 'hard' ? 400 : 0;
+      
       cardElement.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
       cardElement.style.transform = 'translate(' + flyX + 'px, ' + flyY + 'px) rotate(' + (flyX * 0.1) + 'deg)';
       cardElement.style.opacity = '0';
@@ -400,7 +403,7 @@
         .updateCardProgress(card.rowIndex, rating);
     }
 
-    // Touch & Mouse Drag Handlers for Smooth Swipe Animation
+    // Touch & Mouse Event Handlers for 4-Way Drag & Swipe
     cardElement.addEventListener('touchstart', dragStart, {passive: true});
     cardElement.addEventListener('touchmove', dragMove, {passive: true});
     cardElement.addEventListener('touchend', dragEnd);
@@ -409,34 +412,38 @@
     window.addEventListener('mousemove', dragMove);
     window.addEventListener('mouseup', dragEnd);
 
-    function getClientX(e) {
-      return e.touches ? e.touches[0].clientX : e.clientX;
-    }
+    function getClientX(e) { return e.touches ? e.touches[0].clientX : e.clientX; }
+    function getClientY(e) { return e.touches ? e.touches[0].clientY : e.clientY; }
 
     function dragStart(e) {
       isDragging = false;
       startX = getClientX(e);
+      startY = getClientY(e);
       cardElement.style.transition = 'none';
     }
 
     function dragMove(e) {
-      if (startX === 0) return;
+      if (!startX && !startY) return;
       currentX = getClientX(e);
+      currentY = getClientY(e);
       var diffX = currentX - startX;
+      var diffY = currentY - startY;
 
-      if (Math.abs(diffX) > 10) {
+      if (Math.abs(diffX) > 10 || Math.abs(diffY) > 10) {
         isDragging = true;
       }
 
       if (isDragging) {
-        var rotateDeg = diffX * 0.05;
-        cardElement.style.transform = 'translateX(' + diffX + 'px) rotate(' + rotateDeg + 'deg)';
+        var rotateDeg = diffX * 0.04;
+        cardElement.style.transform = 'translate(' + diffX + 'px, ' + diffY + 'px) rotate(' + rotateDeg + 'deg)';
         
-        // Visual feedback color tints while dragging
-        if (diffX < -50) {
-          cardElement.style.backgroundColor = '#fff5f5'; // Red tint for left (Again)
-        } else if (diffX > 50) {
-          cardElement.style.backgroundColor = '#f0fff4'; // Green tint for right (Easy)
+        // Dynamic background tint for directional feedback
+        if (diffX < -40) {
+          cardElement.style.backgroundColor = '#fff5f5'; // Red tint (Again)
+        } else if (diffX > 40) {
+          cardElement.style.backgroundColor = '#f0fff4'; // Green tint (Easy)
+        } else if (diffY > 40) {
+          cardElement.style.backgroundColor = '#fffaf0'; // Orange tint (Hard)
         } else {
           cardElement.style.backgroundColor = '#ffffff';
         }
@@ -445,23 +452,26 @@
 
     function dragEnd(e) {
       if (!isDragging) {
-        startX = 0;
+        startX = 0; startY = 0;
         return;
       }
 
       var diffX = currentX - startX;
-      startX = 0;
+      var diffY = currentY - startY;
+      startX = 0; startY = 0;
       isDragging = false;
 
-      // Threshold to trigger action via swipe gesture (120px)
-      if (diffX < -120) {
-        handleRating('again');
-      } else if (diffX > 120) {
-        handleRating('easy');
+      // Thresholds to trigger actions via swipe gesture (110px)
+      if (diffX < -110) {
+        handleRating('again'); // Swipe Left
+      } else if (diffX > 110) {
+        handleRating('easy');  // Swipe Right
+      } else if (diffY > 110) {
+        handleRating('hard');  // Swipe Down
       } else {
         // Snap back to center if swipe wasn't far enough
         cardElement.style.transition = 'transform 0.2s ease, background-color 0.2s ease';
-        cardElement.style.transform = 'translateX(0px) rotate(0deg)';
+        cardElement.style.transform = 'translate(0px, 0px) rotate(0deg)';
         cardElement.style.backgroundColor = '#ffffff';
       }
     }
