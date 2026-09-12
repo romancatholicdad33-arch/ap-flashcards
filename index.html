@@ -1,208 +1,203 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>SRS Flashcards</title>
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background-color: #f4f6f8;
-      margin: 0;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      box-sizing: border-box;
-    }
+<style>
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: #f4f6f8;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    box-sizing: border-box;
+  }
 
-    .app-container {
-      width: 100%;
-      max-width: 500px;
-      background: #ffffff;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-      box-sizing: border-box;
-    }
+  .app-container {
+    width: 100%;
+    max-width: 500px;
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    box-sizing: border-box;
+  }
 
-    /* Card Container & Flip Styles */
-    .card-container {
-      perspective: 1000px;
-      width: 100%;
-      min-height: 250px;
-      cursor: pointer;
-      margin-bottom: 20px;
-    }
-    
-    .card-inner {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      text-align: center;
-      transition: transform 0.6s;
-      transform-style: preserve-3d;
-      border: 1px solid #e1e4e8;
-      border-radius: 8px;
-      background: #fafbfc;
-      padding: 20px;
-      box-sizing: border-box;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      min-height: 250px;
-    }
-    
-    .card-container.flipped .card-inner {
-      transform: rotateY(180deg);
-    }
-    
-    .card-front, .card-back {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      backface-visibility: hidden;
-      top: 0;
-      left: 0;
-      padding: 20px;
-      box-sizing: border-box;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-    }
-    
-    .card-back {
-      transform: rotateY(180deg);
-    }
+  /* Card Container & 3D Flip Styles */
+  .card-container {
+    perspective: 1000px;
+    width: 100%;
+    min-height: 280px;
+    cursor: pointer;
+    margin-bottom: 20px;
+  }
+  
+  .card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 280px;
+    text-align: center;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+    border: 1px solid #e1e4e8;
+    border-radius: 8px;
+    background: #fafbfc;
+    padding: 20px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .card-container.flipped .card-inner {
+    transform: rotateY(180deg);
+  }
+  
+  .card-front, .card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    top: 0;
+    left: 0;
+    padding: 20px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .card-back {
+    transform: rotateY(180deg);
+    background: #f1f8ff;
+  }
 
-    .card-image {
-      max-width: 100%;
-      max-height: 160px;
-      object-fit: contain;
-      margin-top: 10px;
-      border-radius: 4px;
-    }
+  .card-image {
+    max-width: 100%;
+    max-height: 150px;
+    object-fit: contain;
+    margin-top: 10px;
+    border-radius: 4px;
+  }
 
-    .card-text {
-      font-size: 18px;
-      color: #24292e;
-      word-break: break-word;
-    }
+  .card-text {
+    font-size: 18px;
+    color: #24292e;
+    word-break: break-word;
+  }
 
-    .btn-group {
-      display: flex;
-      gap: 10px;
-      justify-content: space-between;
-    }
+  .btn-group {
+    display: flex;
+    gap: 10px;
+    justify-content: space-between;
+  }
 
-    button {
-      flex: 1;
-      padding: 12px;
-      font-size: 16px;
-      font-weight: 600;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      background-color: #0366d6;
-      color: white;
-    }
+  button {
+    flex: 1;
+    padding: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    background-color: #0366d6;
+    color: white;
+  }
 
-    button:active {
-      background-color: #0056b3;
-    }
-  </style>
-</head>
-<body>
+  button:active {
+    background-color: #0056b3;
+  }
+</style>
 
-  <div class="app-container">
-    <h2>SRS Study Session</h2>
-    
-    <!-- The Flashcard Box -->
-    <div id="card-container" class="card-container">
-      <div class="card-inner">
-        <div class="card-front">
-          <div class="card-text">Loading cards...</div>
-        </div>
-        <div class="card-back">
-          <div class="card-text"></div>
-        </div>
+<div class="app-container">
+  <h2>SRS Study Session</h2>
+  
+  <!-- The Tap-to-Flip Card Container -->
+  <div id="card-container" class="card-container">
+    <div class="card-inner">
+      <div class="card-front">
+        <div class="card-text">Loading cards...</div>
       </div>
-    </div>
-
-    <!-- Controls -->
-    <div class="btn-group">
-      <button onclick="nextCard()">Next Card</button>
+      <div class="card-back">
+        <div class="card-text"></div>
+      </div>
     </div>
   </div>
 
-  <script>
-    let currentQueue = [];
-    let currentIndex = 0;
+  <!-- Navigation -->
+  <div class="btn-group">
+    <button onclick="nextCard()">Next Card</button>
+  </div>
+</div>
 
-    // Fetch session queue from Google Apps Script backend on load
-    window.onload = function() {
-      google.script.run
-        .withSuccessHandler(function(queue) {
-          currentQueue = queue;
-          if (currentQueue && currentQueue.length > 0) {
-            renderCard(currentQueue[currentIndex]);
-          } else {
-            document.getElementById('card-container').innerHTML = '<div class="card-inner"><div class="card-front"><div class="card-text">No cards due for review!</div></div></div>';
-          }
-        })
-        .withFailureHandler(function(error) {
-          console.error("Error loading queue:", error);
-        })
-        .getSessionQueue('cumulative', 'All'); // Adjust mode/subject parameters as needed
-    };
+<script>
+  let currentQueue = [];
+  let currentIndex = 0;
 
-    // Function to render a card safely without ghost images and with proper tap-to-flip
-    function renderCard(cardData) {
-      const container = document.getElementById('card-container');
-      
-      // Conditionally render the image only if it exists and isn't empty
-      let frontImageHtml = '';
-      if (cardData.frontImage && cardData.frontImage.trim() !== '') {
-        frontImageHtml = `<img src="${cardData.frontImage}" class="card-image">`;
+  window.onload = function() {
+    google.script.run
+      .withSuccessHandler(function(queue) {
+        currentQueue = queue;
+        if (currentQueue && currentQueue.length > 0) {
+          renderCard(currentQueue[currentIndex]);
+        } else {
+          document.getElementById('card-container').innerHTML = '<div class="card-inner"><div class="card-front"><div class="card-text">No cards due for review!</div></div></div>';
+        }
+      })
+      .withFailureHandler(function(error) {
+        console.error("Error loading queue:", error);
+      })
+      .getSessionQueue('cumulative', 'All');
+  };
+
+  function renderCard(cardData) {
+    const container = document.getElementById('card-container');
+    
+    // Strict image validation: ensures it's a real URL and ignores blanks/null/undefined text
+    let frontImageHtml = '';
+    if (cardData.frontImage) {
+      let val = String(cardData.frontImage).trim();
+      if (val.length > 5 && !val.toLowerCase().includes('undefined') && !val.toLowerCase().includes('null')) {
+        frontImageHtml = `<img src="${val}" class="card-image">`;
       }
+    }
 
-      let backImageHtml = '';
-      if (cardData.backImage && cardData.backImage.trim() !== '') {
-        backImageHtml = `<img src="${cardData.backImage}" class="card-image">`;
+    let backImageHtml = '';
+    if (cardData.backImage) {
+      let val = String(cardData.backImage).trim();
+      if (val.length > 5 && !val.toLowerCase().includes('undefined') && !val.toLowerCase().includes('null')) {
+        backImageHtml = `<img src="${val}" class="card-image">`;
       }
+    }
 
-      // Build the inner HTML with front and back faces
-      container.innerHTML = `
-        <div class="card-inner">
-          <div class="card-front">
-            <div class="card-text">${cardData.frontText || ''}</div>
-            ${frontImageHtml}
-          </div>
-          <div class="card-back">
-            <div class="card-text">${cardData.backText || ''}</div>
-            ${backImageHtml}
-          </div>
+    // Build card structure
+    container.innerHTML = `
+      <div class="card-inner">
+        <div class="card-front">
+          <div class="card-text">${cardData.frontText || ''}</div>
+          ${frontImageHtml}
         </div>
-      `;
+        <div class="card-back">
+          <div class="card-text">${cardData.backText || ''}</div>
+          ${backImageHtml}
+        </div>
+      </div>
+    `;
 
-      // Reset flip state for the new card
-      container.classList.remove('flipped');
+    // Reset card to front view
+    container.classList.remove('flipped');
 
-      // Attach the tap-to-flip listener
-      container.onclick = function() {
-        this.classList.toggle('flipped');
-      };
-    }
+    // Direct tap-to-flip binding
+    container.onclick = function() {
+      this.classList.toggle('flipped');
+    };
+  }
 
-    function nextCard() {
-      if (currentQueue.length === 0) return;
-      currentIndex = (currentIndex + 1) % currentQueue.length;
-      renderCard(currentQueue[currentIndex]);
-    }
-  </script>
-
-</body>
-</html>
+  function nextCard() {
+    if (currentQueue.length === 0) return;
+    currentIndex = (currentIndex + 1) % currentQueue.length;
+    renderCard(currentQueue[currentIndex]);
+  }
+</script>
