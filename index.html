@@ -163,7 +163,7 @@
 
     .card-image {
       max-width: 100%;
-      max-height: 240px; /* Big, clear view for technical diagrams and images */
+      max-height: 240px;
       border-radius: 8px;
       margin: 8px 0;
       object-fit: contain;
@@ -242,6 +242,7 @@
         <select id="mode-select">
           <option value="new">New Cards</option>
           <option value="due">Due / Review</option>
+          <option value="combined">Combined (New + Due)</option>
         </select>
       </div>
 
@@ -298,7 +299,6 @@
     var currentIndex = 0;
     var isFlipped = false;
 
-    // Drag & Swipe State Variables
     var startX = 0, startY = 0;
     var currentX = 0, currentY = 0;
     var isDragging = false;
@@ -362,7 +362,6 @@
 
       document.getElementById('progress-indicator').innerText = 'Card ' + (currentIndex + 1) + ' of ' + queue.length;
       
-      // Reset position/transform
       cardElement.style.transform = 'translate(0px, 0px) rotate(0deg)';
       cardElement.style.backgroundColor = '#ffffff';
     }
@@ -383,7 +382,6 @@
     function handleRating(rating) {
       var card = queue[currentIndex];
       
-      // Fly off animation per rating direction
       var flyX = rating === 'again' ? -400 : (rating === 'easy' ? 400 : 0);
       var flyY = rating === 'hard' ? 400 : 0;
       
@@ -403,7 +401,6 @@
         .updateCardProgress(card.rowIndex, rating);
     }
 
-    // Touch & Mouse Event Handlers for 4-Way Drag & Swipe
     cardElement.addEventListener('touchstart', dragStart, {passive: true});
     cardElement.addEventListener('touchmove', dragMove, {passive: true});
     cardElement.addEventListener('touchend', dragEnd);
@@ -437,13 +434,12 @@
         var rotateDeg = diffX * 0.04;
         cardElement.style.transform = 'translate(' + diffX + 'px, ' + diffY + 'px) rotate(' + rotateDeg + 'deg)';
         
-        // Dynamic background tint for directional feedback
         if (diffX < -40) {
-          cardElement.style.backgroundColor = '#fff5f5'; // Red tint (Again)
+          cardElement.style.backgroundColor = '#fff5f5';
         } else if (diffX > 40) {
-          cardElement.style.backgroundColor = '#f0fff4'; // Green tint (Easy)
+          cardElement.style.backgroundColor = '#f0fff4';
         } else if (diffY > 40) {
-          cardElement.style.backgroundColor = '#fffaf0'; // Orange tint (Hard)
+          cardElement.style.backgroundColor = '#fffaf0';
         } else {
           cardElement.style.backgroundColor = '#ffffff';
         }
@@ -461,15 +457,13 @@
       startX = 0; startY = 0;
       isDragging = false;
 
-      // Thresholds to trigger actions via swipe gesture (110px)
       if (diffX < -110) {
-        handleRating('again'); // Swipe Left
+        handleRating('again');
       } else if (diffX > 110) {
-        handleRating('easy');  // Swipe Right
+        handleRating('easy');
       } else if (diffY > 110) {
-        handleRating('hard');  // Swipe Down
+        handleRating('hard');
       } else {
-        // Snap back to center if swipe wasn't far enough
         cardElement.style.transition = 'transform 0.2s ease, background-color 0.2s ease';
         cardElement.style.transform = 'translate(0px, 0px) rotate(0deg)';
         cardElement.style.backgroundColor = '#ffffff';
