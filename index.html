@@ -3,138 +3,176 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>SRS Flashcards</title>
+  <title>A&P SRS Flashcards</title>
   <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background-color: #f4f6f8;
+    * {
+      box-sizing: border-box;
       margin: 0;
-      padding: 20px;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: #f0f2f5;
+      color: #333;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       min-height: 100vh;
-      box-sizing: border-box;
+      padding: 15px;
     }
 
     .app-container {
       width: 100%;
-      max-width: 500px;
-      background: #ffffff;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-      box-sizing: border-box;
+      max-width: 400px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
-    /* Card Container & 3D Flip Styles */
-    .card-container {
-      perspective: 1000px;
+    header {
       width: 100%;
-      min-height: 280px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    h1 {
+      font-size: 1.2rem;
+      color: #1a1a1a;
+    }
+
+    /* Card Scene & 3D Flip Container */
+    .scene {
+      width: 100%;
+      max-width: 380px;
+      height: 440px;
+      perspective: 1000px;
+      position: relative;
       cursor: pointer;
       margin-bottom: 20px;
     }
-    
-    .card-inner {
-      position: relative;
+
+    #card {
       width: 100%;
       height: 100%;
-      min-height: 280px;
-      text-align: center;
-      transition: transform 0.6s;
+      position: relative;
       transform-style: preserve-3d;
-      border: 1px solid #e1e4e8;
-      border-radius: 8px;
-      background: #fafbfc;
-      padding: 20px;
-      box-sizing: border-box;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
+      transition: transform 0.4s ease;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
     }
-    
-    .card-container.flipped .card-inner {
+
+    #card.flipped {
       transform: rotateY(180deg);
     }
-    
-    .card-front, .card-back {
+
+    /* Card Faces */
+    .card-face {
       position: absolute;
       width: 100%;
       height: 100%;
       backface-visibility: hidden;
-      top: 0;
-      left: 0;
+      -webkit-backface-visibility: hidden;
+      border-radius: 16px;
+      background: #ffffff;
       padding: 20px;
-      box-sizing: border-box;
       display: flex;
       flex-direction: column;
-      justify-content: center;
+      justify-content: space-between;
       align-items: center;
+      text-align: center;
+      border: 1px solid #e1e4e8;
     }
-    
+
     .card-back {
       transform: rotateY(180deg);
-      background: #f1f8ff;
+      background-color: #f8f9fa;
+      border: 2px solid #007aff;
+    }
+
+    .card-subject {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #8e8e93;
+      font-weight: 700;
+    }
+
+    .card-text {
+      font-size: 1.05rem;
+      line-height: 1.4;
+      color: #1c1c1e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-grow: 1;
+      width: 100%;
+      overflow-y: auto;
+      white-space: pre-line;
     }
 
     .card-image {
       max-width: 100%;
-      max-height: 150px;
+      max-height: 160px;
       object-fit: contain;
+      border-radius: 8px;
       margin-top: 10px;
-      border-radius: 4px;
     }
 
-    .card-text {
-      font-size: 18px;
-      color: #24292e;
-      word-break: break-word;
-    }
-
+    /* Navigation */
     .btn-group {
+      width: 100%;
+      max-width: 380px;
       display: flex;
       gap: 10px;
-      justify-content: space-between;
     }
 
     button {
       flex: 1;
-      padding: 12px;
-      font-size: 16px;
-      font-weight: 600;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      background-color: #0366d6;
+      background-color: #007aff;
       color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
     }
 
     button:active {
-      background-color: #0056b3;
+      opacity: 0.8;
     }
   </style>
 </head>
 <body>
 
   <div class="app-container">
-    <h2>SRS Study Session</h2>
+    <header>
+      <h1>A&P Study Session</h1>
+      <span id="counter" style="font-size: 0.85rem; color: #666;">Loading...</span>
+    </header>
     
-    <!-- Tap-to-Flip Card Container -->
-    <div id="card-container" class="card-container">
-      <div class="card-inner">
-        <div class="card-front">
-          <div class="card-text">Loading cards...</div>
+    <!-- 3D Flashcard Scene -->
+    <div class="scene" onclick="flipCard()">
+      <div id="card">
+        <div class="card-face card-front">
+          <div class="card-subject" id="front-subject">Subject</div>
+          <div class="card-text" id="front-text">Loading cards...</div>
+          <div id="front-image-container"></div>
         </div>
-        <div class="card-back">
-          <div class="card-text"></div>
+        <div class="card-face card-back">
+          <div class="card-subject" id="back-subject">Answer</div>
+          <div class="card-text" id="back-text"></div>
+          <div id="back-image-container"></div>
         </div>
       </div>
     </div>
 
-    <!-- Navigation -->
+    <!-- Navigation Controls -->
     <div class="btn-group">
       <button onclick="nextCard()">Next Card</button>
     </div>
@@ -149,63 +187,52 @@
         .withSuccessHandler(function(queue) {
           currentQueue = queue;
           if (currentQueue && currentQueue.length > 0) {
-            renderCard(currentQueue[currentIndex]);
+            renderCard();
           } else {
-            document.getElementById('card-container').innerHTML = '<div class="card-inner"><div class="card-front"><div class="card-text">No cards due for review!</div></div></div>';
+            document.getElementById('front-text').innerText = "No cards due for review!";
+            document.getElementById('counter').innerText = "0 / 0";
           }
         })
         .withFailureHandler(function(error) {
           console.error("Error loading queue:", error);
-          document.getElementById('card-container').innerHTML = '<div class="card-inner"><div class="card-front"><div class="card-text">Error loading session data.</div></div></div>';
+          document.getElementById('front-text').innerText = "Error loading session data.";
         })
         .getSessionQueue('cumulative', 'All');
     };
 
-    function renderCard(cardData) {
-      const container = document.getElementById('card-container');
+    function renderCard() {
+      if (currentQueue.length === 0) return;
+      const cardData = currentQueue[currentIndex];
       
-      // Strict image validation to prevent broken image placeholders
-      let frontImageHtml = '';
+      // Update text and subjects
+      document.getElementById('front-subject').innerText = cardData.subject || '';
+      document.getElementById('back-subject').innerText = cardData.subject ? cardData.subject + " (Answer)" : "Answer";
+      document.getElementById('front-text').innerText = cardData.frontText || '';
+      document.getElementById('back-text').innerText = cardData.backText || '';
+      document.getElementById('counter').innerText = `Card ${currentIndex + 1} of ${currentQueue.length}`;
+
+      // Handle front image securely without broken placeholders
+      const frontImgContainer = document.getElementById('front-image-container');
+      frontImgContainer.innerHTML = '';
       if (cardData.frontImage) {
         let val = String(cardData.frontImage).trim();
         if (val.length > 5 && !val.toLowerCase().includes('undefined') && !val.toLowerCase().includes('null')) {
-          frontImageHtml = `<img src="${val}" class="card-image">`;
+          frontImgContainer.innerHTML = `<img src="${val}" class="card-image">`;
         }
       }
 
-      let backImageHtml = '';
-      if (cardData.backImage) {
-        let val = String(cardData.backImage).trim();
-        if (val.length > 5 && !val.toLowerCase().includes('undefined') && !val.toLowerCase().includes('null')) {
-          backImageHtml = `<img src="${val}" class="card-image">`;
-        }
-      }
+      // Reset card flip state
+      document.getElementById('card').classList.remove('flipped');
+    }
 
-      container.innerHTML = `
-        <div class="card-inner">
-          <div class="card-front">
-            <div class="card-text">${cardData.frontText || ''}</div>
-            ${frontImageHtml}
-          </div>
-          <div class="card-back">
-            <div class="card-text">${cardData.backText || ''}</div>
-            ${backImageHtml}
-          </div>
-        </div>
-      `;
-
-      container.classList.remove('flipped');
-
-      // Direct tap-to-flip binding
-      container.onclick = function() {
-        this.classList.toggle('flipped');
-      };
+    function flipCard() {
+      document.getElementById('card').classList.toggle('flipped');
     }
 
     function nextCard() {
       if (currentQueue.length === 0) return;
       currentIndex = (currentIndex + 1) % currentQueue.length;
-      renderCard(currentQueue[currentIndex]);
+      renderCard();
     }
   </script>
 
