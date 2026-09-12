@@ -32,7 +32,6 @@
       align-items: center;
     }
 
-    /* --- START SCREEN --- */
     #start-screen {
       background: white;
       padding: 24px;
@@ -70,7 +69,6 @@
       background: #fff;
     }
 
-    /* --- STUDY SCREEN --- */
     #study-screen {
       display: none;
       width: 100%;
@@ -98,7 +96,6 @@
       margin-bottom: 10px;
     }
 
-    /* 3D Flashcard Scene */
     .scene {
       width: 100%;
       max-width: 380px;
@@ -172,7 +169,6 @@
       white-space: pre-line;
     }
 
-    /* Front Face Image Support */
     .card-image {
       max-width: 100%;
       max-height: 140px;
@@ -180,7 +176,6 @@
       border-radius: 8px;
     }
 
-    /* --- THREE SWIPE BUCKETS / BUTTONS --- */
     .buckets {
       width: 100%;
       max-width: 380px;
@@ -202,9 +197,9 @@
       color: white;
     }
 
-    #bucket-left { background-color: #ff3b30; }   /* Red / Again */
-    #bucket-center { background-color: #ff9500; } /* Yellow-Orange / Hard */
-    #bucket-right { background-color: #34c759; }  /* Green / Easy */
+    #bucket-left { background-color: #ff3b30; }
+    #bucket-center { background-color: #ff9500; }
+    #bucket-right { background-color: #34c759; }
 
     .bucket:active { opacity: 0.8; }
 
@@ -216,12 +211,10 @@
       margin-top: 12px;
     }
 
-    /* Feedback Flash Flashcard Overlays */
     .scene.highlight-red { border: 4px solid #ff3b30; transform: scale(0.98); }
     .scene.highlight-yellow { border: 4px solid #ff9500; transform: scale(0.98); }
     .scene.highlight-green { border: 4px solid #34c759; transform: scale(0.98); }
 
-    /* --- STATS SCREEN --- */
     #stats-screen {
       display: none;
       background: white;
@@ -252,7 +245,6 @@
 
   <div class="app-container">
 
-    <!-- 1. START SETUP SCREEN -->
     <div id="start-screen">
       <h2>A&P SRS Flashcards</h2>
       <p style="text-align: center; font-size: 0.85rem; color: #666;">Configure your review session below.</p>
@@ -288,14 +280,12 @@
       <button class="primary-btn" onclick="startSession()" style="margin-top: 10px;">Start Studying</button>
     </div>
 
-    <!-- 2. ACTIVE STUDY SCREEN -->
     <div id="study-screen">
       <header>
         <h1 id="session-title">Study Session</h1>
       </header>
       <div id="counter">Card 1 of 25</div>
       
-      <!-- 3D Card with Touch & Click Listeners -->
       <div class="scene" id="card-scene" onclick="flipCard()">
         <div id="card">
           <div class="card-face card-front">
@@ -316,7 +306,6 @@
         </div>
       </div>
 
-      <!-- Three Rating Buckets (Swipe / Click Actions) -->
       <div class="buckets">
         <button class="bucket" id="bucket-left" onclick="gradeCard('again')">Again (Left)</button>
         <button class="bucket" id="bucket-center" onclick="gradeCard('hard')">Hard (Down)</button>
@@ -328,7 +317,6 @@
       </div>
     </div>
 
-    <!-- 3. STATS / COMPLETION SCREEN -->
     <div id="stats-screen">
       <h2>Session Complete! 🎉</h2>
       <p id="stats-message" style="color: #444; font-size: 0.95rem; font-weight: 500;"></p>
@@ -348,7 +336,6 @@
     let currentIndex = 0;
     let stats = { easy: 0, hard: 0, again: 0, total: 0 };
 
-    // Touch Swipe State tracking
     let touchStartX = 0;
     let touchStartY = 0;
     let touchEndX = 0;
@@ -373,18 +360,17 @@
 
       if (Math.abs(xDiff) > Math.abs(yDiff)) {
         if (xDiff > 60) {
-          gradeCard('easy'); // Swipe Right -> Easy
+          gradeCard('easy');
         } else if (xDiff < -60) {
-          gradeCard('again'); // Swipe Left -> Again
+          gradeCard('again');
         }
       } else {
         if (yDiff > 60) {
-          gradeCard('hard'); // Swipe Down -> Hard
+          gradeCard('hard');
         }
       }
     }
 
-    // Desktop Keyboard Shortcuts
     document.addEventListener('keydown', function(e) {
       if (document.getElementById('study-screen').style.display === 'flex') {
         if (e.code === 'Space') {
@@ -444,7 +430,6 @@
       document.getElementById('back-text').innerText = cardData.backText || '';
       document.getElementById('counter').innerText = `Card ${currentIndex + 1} of ${currentQueue.length}`;
 
-      // Front Image Support
       const frontImgContainer = document.getElementById('front-image-container');
       frontImgContainer.innerHTML = '';
       if (cardData.frontImage) {
@@ -465,17 +450,14 @@
       if (currentQueue.length === 0) return;
       const card = currentQueue[currentIndex];
 
-      // Track session statistics
       stats.total++;
       if (rating === 'easy') stats.easy++;
       if (rating === 'hard') stats.hard++;
       if (rating === 'again') {
         stats.again++;
-        // Same-session recycling: push failed card back into the active queue loop!
         currentQueue.push(card);
       }
 
-      // Visual color feedback highlight
       let highlightClass = '';
       if (rating === 'again') highlightClass = 'highlight-red';
       else if (rating === 'hard') highlightClass = 'highlight-yellow';
@@ -487,7 +469,6 @@
         sceneEl.classList.remove(highlightClass);
       }, 200);
 
-      // Save progress to Google Sheets backend
       google.script.run
         .withSuccessHandler(function(res) {
           currentIndex++;
@@ -511,7 +492,6 @@
       document.getElementById('stat-hard').innerText = stats.hard;
       document.getElementById('stat-again').innerText = stats.again;
 
-      // Custom performance message based on results
       let msg = "";
       if (stats.again === 0 && stats.hard === 0) {
         msg = "Flawless session! Perfect retention across the board.";

@@ -26,17 +26,22 @@ function getSessionQueue(mode, targetSubject, limit) {
     if (!frontText || String(frontText).trim() === "") continue;
 
     var isDue = false;
+    
     if (mode === 'new') {
-      if (!interval || Number(interval) === 0) {
+      if (interval === "" || interval === null || Number(interval) === 0) {
         isDue = true;
       }
     } else {
-      if (!nextReviewDate || String(nextReviewDate).trim() === "") {
+      if (!nextReviewDate || String(nextReviewDate).trim() === "" || interval === "" || interval === null) {
         isDue = true;
       } else {
         var reviewDate = new Date(nextReviewDate);
-        reviewDate.setHours(0, 0, 0, 0);
-        if (reviewDate <= today) {
+        if (!isNaN(reviewDate.getTime())) {
+          reviewDate.setHours(0, 0, 0, 0);
+          if (reviewDate <= today) {
+            isDue = true;
+          }
+        } else {
           isDue = true;
         }
       }
@@ -60,7 +65,6 @@ function getSessionQueue(mode, targetSubject, limit) {
     }
   }
 
-  // Apply card limit selector (10, 25, 50, or Full)
   if (limit && limit !== 'all' && limit !== 'Full') {
     var maxCount = parseInt(limit, 10);
     if (!isNaN(maxCount) && cards.length > maxCount) {
@@ -85,7 +89,7 @@ function updateCardProgress(rowIndex, rating) {
   var newInterval, newEase;
 
   if (rating === 'again') {
-    newInterval = 0; // Immediate repeat in same session / next session
+    newInterval = 0;
     newEase = Math.max(1.3, currentEase - 0.2);
   } else if (rating === 'hard') {
     newInterval = Math.max(1, Math.round(currentInterval * 1.2));
