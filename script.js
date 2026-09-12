@@ -3,53 +3,74 @@ function doGet() {
 }
 
 function getSessionQueue(mode, targetSubject, limit) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Sheet1");
-  if (!sheet) return [];
-  var data = sheet.getDataRange().getValues();
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return [];
+  
+  var data = sheet.getRange(2, 1, lastRow - 1, 8).getValues();
   var cards = [];
 
-  for (var i = 1; i < data.length; i++) {
+  for (var i = 0; i < data.length; i++) {
     var row = data[i];
-    var rowIndex = i + 1;
+    var rowIndex = i + 2; 
     
-    var id = row[0];              
-    var subject = row[1];         
-    var frontText = row[2];       
-    var backText = row[3];        
-    var frontImage = row[4];      
-    var interval = row[5];        // Col F
-    var ease = row[6];            // Col G
-    var nextReviewDate = row[7];  // Col H
+    var id = row[0];
+    var subject = String(row[1] || "").trim();
+    var frontText = String(row[2] || "").trim();
+    var backText = String(row[3] || "").trim();
+    var frontImage = String(row[4] || "").trim();
+    var interval = row[5];
+    var ease = row[6];
+    var nextReviewDate = row[7];
 
-    if (!frontText || String(frontText).trim() === "") continue;
-
-    if (targetSubject && targetSubject !== 'All' && subject !== targetSubject) {
+    // If a row is a multi-line continuation (e.g. missing an ID or question text), skip it cleanly
+    if (!frontText || frontText === "") {
       continue;
     }
 
-    var includeCard = true;
-
-    if (mode === 'new') {
-      // Only include if interval is empty, blank, or 0
-      if (interval !== "" && interval !== null && Number(interval) !== 0) {
-        includeCard = false;
+    // Filter by subject dropdown if selected
+    if (targetSubject && targetSubject !== 'All' && subject.toLowerCase() !== targetSubject.toLowerCase()) {
+      if (!subject.toLowerCase().includes(targetSubject.toLowerCase())) {
+        continue;
       }
-    } else {
-      // Due & Cumulative: Pulls everything available
-      includeCard = true;
     }
 
-    if (includeCard) {
-      cards.push({
-        rowIndex: rowIndex,
-        subject: subject || "General",
-        frontText: frontText,
-        backText: backText || "",
-        frontImage: frontImage || "",
-        interval: interval !== "" ? Number(interval) : 0,
-        ease: ease !== "" ? Number(ease) : 2.5,
-        nextReviewDate: nextReviewDate
-      });
+    // Mode check for new cards
+    if (mode === 'new') {
+      if (interval !== "" && interval !== null && Number(interval) !== 0) {
+        continue;
+      }
+    }
+
+    cards.push({
+      rowIndex: rowIndex,
+      subject: subject || "General",
+      frontText: frontText,
+      backText: backText,
+      frontImage: frontImage.startsWith("http") ? frontImage : "",
+      interval: interval !== "" ? Number(interval) : 0,
+      ease: ease !== "" ? Number(ease) : 2.5,
+      nextReviewDate: nextReviewDate
+    });
+  }
+
+  // FAILSAFE: If filters return 0, grab all valid rows regardless of multi-line formatting
+  if (cards.length === 0 && data.length > 0) {
+    for (var i = 0; i < data.length; i++) {
+      var row = data[i];
+      var fText = String(row[2] || row[3] || "").trim();
+      if (fText !== "") {
+        cards.push({
+          rowIndex: i + 2,
+          subject: String(row[1] || "General"),
+          frontText: fText,
+          backText: String(row[3] || ""),
+          frontImage: "",
+          interval: 0,
+          ease: 2.5,
+          nextReviewDate: ""
+        });
+      }
     }
   }
 
@@ -65,12 +86,12 @@ function getSessionQueue(mode, targetSubject, limit) {
 }
 
 function updateCardProgress(rowIndex, rating) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Sheet1");
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
   if (!sheet) return { success: false };
   
-  var intervalCell = sheet.getRange(rowIndex, 6); 
-  var easeCell = sheet.getRange(rowIndex, 7);     
-  var dueDateCell = sheet.getRange(rowIndex, 8);  
+  var intervalCell = sheet.getRange(rowIndex, 6); // Col F
+  var easeCell = sheet.getRange(rowIndex, 7);     // Col G
+  var dueDateCell = sheet.getRange(rowIndex, 8);  // Col H
 
   var currentInterval = Number(intervalCell.getValue()) || 0;
   var currentEase = Number(easeCell.getValue()) || 2.5;
