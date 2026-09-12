@@ -2,13 +2,13 @@
 <html>
 <head>
   <base target="_top">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       background-color: #f4f6f9;
       margin: 0;
-      padding: 8px;
+      padding: 6px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -20,21 +20,20 @@
     }
 
     h2 {
-      margin: 2px 0 5px 0;
-      font-size: 1.2rem;
+      margin: 0 0 2px 0;
+      font-size: 1.1rem;
       color: #1a202c;
     }
 
     #app-container {
       width: 100%;
-      max-width: 600px;
+      max-width: 700px;
       display: flex;
       flex-direction: column;
       align-items: center;
       height: 100%;
     }
 
-    /* Setup / Menu View */
     #setup-view {
       background: white;
       padding: 20px;
@@ -42,23 +41,23 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.08);
       width: 100%;
       box-sizing: border-box;
-      margin-top: 20px;
+      margin-top: 10px;
     }
 
     .form-group {
-      margin-bottom: 15px;
+      margin-bottom: 12px;
     }
 
     label {
       display: block;
-      margin-bottom: 5px;
+      margin-bottom: 4px;
       font-weight: 600;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
     }
 
     select {
       width: 100%;
-      padding: 12px;
+      padding: 10px;
       border: 1px solid #cbd5e0;
       border-radius: 8px;
       font-size: 1rem;
@@ -67,22 +66,17 @@
 
     button.primary-btn {
       width: 100%;
-      padding: 14px;
+      padding: 12px;
       background-color: #3182ce;
       color: white;
       border: none;
       border-radius: 8px;
-      font-size: 1.1rem;
+      font-size: 1rem;
       font-weight: bold;
       cursor: pointer;
-      margin-top: 10px;
+      margin-top: 5px;
     }
 
-    button.primary-btn:active {
-      background-color: #2b6cb0;
-    }
-
-    /* Study View & Maximized Card Layout */
     #study-view {
       display: none;
       flex-direction: column;
@@ -91,11 +85,11 @@
       flex: 1;
       box-sizing: border-box;
       justify-content: space-between;
-      padding-bottom: 10px;
+      padding-bottom: 5px;
     }
 
     .progress-indicator {
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       color: #718096;
       margin-bottom: 2px;
       font-weight: 500;
@@ -107,19 +101,19 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      perspective: 1000px;
-      margin: 5px 0;
+      margin: 2px 0;
     }
 
+    /* Dynamic Card Sizing based on View Mode */
     .flashcard {
-      width: 96%;
-      max-width: 520px;
-      height: 76vh;
-      max-height: 600px;
+      width: 98%;
+      max-width: 550px;
+      height: 82vh;
+      max-height: 680px;
       background: white;
-      border-radius: 18px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+      padding: 16px;
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
@@ -129,88 +123,98 @@
       cursor: grab;
       user-select: none;
       position: relative;
-      transition: transform 0.15s ease, background-color 0.2s ease;
+      transition: transform 0.15s ease, background-color 0.2s ease, width 0.3s ease, height 0.3s ease;
       touch-action: none;
+    }
+
+    /* Landscape Mode overrides for wider view */
+    .flashcard.landscape-mode {
+      max-width: 95vw;
+      width: 95vw;
+      height: 72vh;
+      max-height: 500px;
     }
 
     .flashcard:active {
       cursor: grabbing;
     }
 
-    .card-header-tag {
+    .card-header-row {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
       font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
       color: #a0aec0;
       font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
 
     .card-body {
-      font-size: 1.25rem;
+      font-size: 1.15rem;
       color: #2d3748;
-      line-height: 1.4;
+      line-height: 1.35;
       overflow-y: auto;
       width: 100%;
-      padding: 5px 0;
+      padding: 4px 0;
       white-space: pre-line;
       margin: auto 0;
     }
 
     .card-footer-hint {
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       color: #cbd5e0;
     }
 
     .card-image {
       max-width: 100%;
-      max-height: 240px;
-      border-radius: 8px;
-      margin: 8px 0;
+      max-height: 180px;
+      border-radius: 6px;
+      margin: 4px 0;
       object-fit: contain;
     }
 
-    /* Controls / Action Buttons */
     .controls {
       display: flex;
-      gap: 10px;
-      width: 96%;
-      max-width: 520px;
-      margin-bottom: 8px;
+      gap: 8px;
+      width: 98%;
+      max-width: 550px;
+      margin-bottom: 4px;
     }
 
     .rate-btn {
       flex: 1;
-      padding: 12px 6px;
+      padding: 10px 4px;
       border: none;
-      border-radius: 10px;
-      font-size: 0.95rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
       font-weight: bold;
       color: white;
       cursor: pointer;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
 
     .btn-again { background-color: #e53e3e; }
     .btn-hard  { background-color: #dd6b20; }
     .btn-easy  { background-color: #38a169; }
 
-    .rate-btn:active {
-      opacity: 0.8;
-      transform: scale(0.98);
-    }
-
     .menu-btn-bar {
-      margin-bottom: 5px;
+      display: flex;
+      gap: 8px;
+      margin-bottom: 2px;
+      width: 98%;
+      max-width: 550px;
     }
 
     .secondary-btn {
+      flex: 1;
       background: #edf2f7;
       color: #4a5568;
       border: none;
-      padding: 8px 16px;
+      padding: 8px 12px;
       border-radius: 8px;
       font-weight: 600;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       cursor: pointer;
     }
 
@@ -218,10 +222,10 @@
       display: none;
       position: fixed;
       top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(255,255,255,0.8);
+      background: rgba(255,255,255,0.85);
       justify-content: center;
       align-items: center;
-      font-size: 1.2rem;
+      font-size: 1.1rem;
       font-weight: bold;
       color: #3182ce;
       z-index: 999;
@@ -235,14 +239,13 @@
   <div id="app-container">
     <h2>A&P Flashcards</h2>
 
-    <!-- Setup View -->
     <div id="setup-view">
       <div class="form-group">
         <label for="mode-select">Session Mode</label>
         <select id="mode-select">
           <option value="new">New Cards</option>
           <option value="due">Due / Review</option>
-          <option value="combined">Combined (New + Due)</option>
+          <option value="combined" selected>Combined (New + Due)</option>
         </select>
       </div>
 
@@ -269,13 +272,15 @@
       <button class="primary-btn" onclick="startSession()">Start Studying</button>
     </div>
 
-    <!-- Study View -->
     <div id="study-view">
       <div class="progress-indicator" id="progress-indicator">Card 1 of 10</div>
 
       <div class="card-scene">
         <div class="flashcard" id="flashcard" onclick="toggleFlip()">
-          <div class="card-header-tag" id="card-tag">Subject</div>
+          <div class="card-header-row">
+            <span id="card-tag">Subject</span>
+            <span id="card-id-tag">#101</span>
+          </div>
           <div class="card-body" id="card-content">Question goes here...</div>
           <div id="card-image-container"></div>
           <div class="card-footer-hint">Tap to Flip</div>
@@ -289,6 +294,7 @@
       </div>
 
       <div class="menu-btn-bar">
+        <button class="secondary-btn" onclick="toggleLandscapeMode()" id="layout-toggle-btn">Landscape View: Off</button>
         <button class="secondary-btn" onclick="returnToMenu()">Menu</button>
       </div>
     </div>
@@ -298,6 +304,7 @@
     var queue = [];
     var currentIndex = 0;
     var isFlipped = false;
+    var isLandscapeMode = false;
 
     var startX = 0, startY = 0;
     var currentX = 0, currentY = 0;
@@ -339,6 +346,17 @@
       document.getElementById('setup-view').style.display = 'block';
     }
 
+    function toggleLandscapeMode() {
+      isLandscapeMode = !isLandscapeMode;
+      if (isLandscapeMode) {
+        cardElement.classList.add('landscape-mode');
+        document.getElementById('layout-toggle-btn').innerText = 'Landscape View: On';
+      } else {
+        cardElement.classList.remove('landscape-mode');
+        document.getElementById('layout-toggle-btn').innerText = 'Landscape View: Off';
+      }
+    }
+
     function loadCard() {
       if (currentIndex >= queue.length) {
         alert("Session complete!");
@@ -349,11 +367,15 @@
       isFlipped = false;
       var card = queue[currentIndex];
       document.getElementById('card-tag').innerText = card.subject;
-      document.getElementById('card-content').innerText = card.frontText;
+      document.getElementById('card-id-tag').innerText = '#' + card.cardId;
+      
+      // Front text combines Column C (frontText) and Column E (frontImage / extra notes if applicable)
+      var frontDisplay = card.frontText;
+      document.getElementById('card-content').innerText = frontDisplay;
       
       var imgContainer = document.getElementById('card-image-container');
       imgContainer.innerHTML = '';
-      if (card.frontImage) {
+      if (card.frontImage && card.frontImage.length > 3) {
         var img = document.createElement('img');
         img.src = card.frontImage;
         img.className = 'card-image';
@@ -371,6 +393,7 @@
       var card = queue[currentIndex];
       isFlipped = !isFlipped;
       if (isFlipped) {
+        // Back text pulls from Column D (backText)
         document.getElementById('card-content').innerText = card.backText || "(No Answer Provided)";
         cardElement.style.backgroundColor = '#f7fafc';
       } else {
@@ -396,7 +419,7 @@
             cardElement.style.opacity = '1';
             currentIndex++;
             loadCard();
-          }, 250);
+          }, 200);
         })
         .updateCardProgress(card.rowIndex, rating);
     }
