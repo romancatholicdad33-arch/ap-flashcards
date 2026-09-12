@@ -32,28 +32,81 @@
       align-items: center;
     }
 
+    /* --- START SCREEN --- */
+    #start-screen {
+      background: white;
+      padding: 24px;
+      border-radius: 16px;
+      width: 100%;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    #start-screen h2 {
+      font-size: 1.3rem;
+      color: #1a1a1a;
+      text-align: center;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #555;
+    }
+
+    select {
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      background: #fff;
+    }
+
+    /* --- STUDY SCREEN --- */
+    #study-screen {
+      display: none;
+      width: 100%;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
     header {
       width: 100%;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 15px;
+      margin-bottom: 5px;
     }
 
     h1 {
-      font-size: 1.2rem;
+      font-size: 1.1rem;
       color: #1a1a1a;
     }
 
-    /* Card Scene & 3D Flip Container */
+    #counter {
+      font-size: 0.85rem;
+      color: #666;
+      margin-bottom: 10px;
+    }
+
+    /* 3D Flashcard Scene */
     .scene {
       width: 100%;
       max-width: 380px;
-      height: 440px;
+      height: 420px;
       perspective: 1000px;
       position: relative;
       cursor: pointer;
-      margin-bottom: 20px;
+      transition: transform 0.15s ease;
     }
 
     #card {
@@ -61,7 +114,7 @@
       height: 100%;
       position: relative;
       transform-style: preserve-3d;
-      transition: transform 0.4s ease;
+      transition: transform 0.35s ease;
       border-radius: 16px;
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
     }
@@ -70,7 +123,6 @@
       transform: rotateY(180deg);
     }
 
-    /* Card Faces */
     .card-face {
       position: absolute;
       width: 100%;
@@ -102,37 +154,88 @@
       font-weight: 700;
     }
 
-    .card-text {
-      font-size: 1.05rem;
-      line-height: 1.4;
-      color: #1c1c1e;
+    .card-content-area {
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
       flex-grow: 1;
       width: 100%;
       overflow-y: auto;
-      white-space: pre-line;
-    }
-
-    .card-image {
-      max-width: 100%;
-      max-height: 160px;
-      object-fit: contain;
-      border-radius: 8px;
-      margin-top: 10px;
-    }
-
-    /* Navigation */
-    .btn-group {
-      width: 100%;
-      max-width: 380px;
-      display: flex;
       gap: 10px;
     }
 
-    button {
+    .card-text {
+      font-size: 1rem;
+      line-height: 1.4;
+      color: #1c1c1e;
+      white-space: pre-line;
+    }
+
+    /* Front Face Image Support */
+    .card-image {
+      max-width: 100%;
+      max-height: 140px;
+      object-fit: contain;
+      border-radius: 8px;
+    }
+
+    /* --- THREE SWIPE BUCKETS / BUTTONS --- */
+    .buckets {
+      width: 100%;
+      max-width: 380px;
+      display: flex;
+      justify-content: space-between;
+      margin-top: 15px;
+      gap: 8px;
+    }
+
+    .bucket {
       flex: 1;
+      padding: 12px 6px;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-align: center;
+      cursor: pointer;
+      border: none;
+      color: white;
+    }
+
+    #bucket-left { background-color: #ff3b30; }   /* Red / Again */
+    #bucket-center { background-color: #ff9500; } /* Yellow-Orange / Hard */
+    #bucket-right { background-color: #34c759; }  /* Green / Easy */
+
+    .bucket:active { opacity: 0.8; }
+
+    .menu-bar {
+      width: 100%;
+      max-width: 380px;
+      display: flex;
+      justify-content: flex-start;
+      margin-top: 12px;
+    }
+
+    /* Feedback Flash Flashcard Overlays */
+    .scene.highlight-red { border: 4px solid #ff3b30; transform: scale(0.98); }
+    .scene.highlight-yellow { border: 4px solid #ff9500; transform: scale(0.98); }
+    .scene.highlight-green { border: 4px solid #34c759; transform: scale(0.98); }
+
+    /* --- STATS SCREEN --- */
+    #stats-screen {
+      display: none;
+      background: white;
+      padding: 24px;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+      text-align: center;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    button.primary-btn {
       background-color: #007aff;
       color: white;
       border: none;
@@ -141,77 +244,207 @@
       font-size: 1rem;
       font-weight: 600;
       cursor: pointer;
-    }
-
-    button:active {
-      opacity: 0.8;
+      width: 100%;
     }
   </style>
 </head>
 <body>
 
   <div class="app-container">
-    <header>
-      <h1>A&P Study Session</h1>
-      <span id="counter" style="font-size: 0.85rem; color: #666;">Loading...</span>
-    </header>
-    
-    <!-- 3D Flashcard Scene -->
-    <div class="scene" onclick="flipCard()">
-      <div id="card">
-        <div class="card-face card-front">
-          <div class="card-subject" id="front-subject">Subject</div>
-          <div class="card-text" id="front-text">Loading cards...</div>
-          <div id="front-image-container"></div>
+
+    <!-- 1. START SETUP SCREEN -->
+    <div id="start-screen">
+      <h2>A&P SRS Flashcards</h2>
+      <p style="text-align: center; font-size: 0.85rem; color: #666;">Configure your review session below.</p>
+      
+      <div class="form-group">
+        <label for="mode-select">Session Mode</label>
+        <select id="mode-select">
+          <option value="cumulative">Due & Cumulative</option>
+          <option value="new">New Cards Only</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="subject-select">Subject Filter</label>
+        <select id="subject-select">
+          <option value="All">All Subjects</option>
+          <option value="Materials">Materials</option>
+          <option value="Aircraft Drawing">Aircraft Drawing</option>
+          <option value="Corrosion, Metals, Weld">Corrosion, Metals, Weld</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="limit-select">Card Count Limit</label>
+        <select id="limit-select">
+          <option value="10">10 Cards</option>
+          <option value="25" selected>25 Cards</option>
+          <option value="50">50 Cards</option>
+          <option value="all">Full Deck (All Due)</option>
+        </select>
+      </div>
+
+      <button class="primary-btn" onclick="startSession()" style="margin-top: 10px;">Start Studying</button>
+    </div>
+
+    <!-- 2. ACTIVE STUDY SCREEN -->
+    <div id="study-screen">
+      <header>
+        <h1 id="session-title">Study Session</h1>
+      </header>
+      <div id="counter">Card 1 of 25</div>
+      
+      <!-- 3D Card with Touch & Click Listeners -->
+      <div class="scene" id="card-scene" onclick="flipCard()">
+        <div id="card">
+          <div class="card-face card-front">
+            <div class="card-subject" id="front-subject">Subject</div>
+            <div class="card-content-area">
+              <div id="front-image-container"></div>
+              <div class="card-text" id="front-text">Loading...</div>
+            </div>
+            <div style="font-size: 0.7rem; color: #aaa;">Tap to flip</div>
+          </div>
+          <div class="card-face card-back">
+            <div class="card-subject" id="back-subject">Answer</div>
+            <div class="card-content-area">
+              <div class="card-text" id="back-text"></div>
+            </div>
+            <div style="font-size: 0.7rem; color: #aaa;">Answer Card</div>
+          </div>
         </div>
-        <div class="card-face card-back">
-          <div class="card-subject" id="back-subject">Answer</div>
-          <div class="card-text" id="back-text"></div>
-          <div id="back-image-container"></div>
-        </div>
+      </div>
+
+      <!-- Three Rating Buckets (Swipe / Click Actions) -->
+      <div class="buckets">
+        <button class="bucket" id="bucket-left" onclick="gradeCard('again')">Again (Left)</button>
+        <button class="bucket" id="bucket-center" onclick="gradeCard('hard')">Hard (Down)</button>
+        <button class="bucket" id="bucket-right" onclick="gradeCard('easy')">Easy (Right)</button>
+      </div>
+
+      <div class="menu-bar">
+        <button onclick="returnToStart()" style="background: #6c757d; color: white; border: none; padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; cursor: pointer;">Menu</button>
       </div>
     </div>
 
-    <!-- Navigation Controls -->
-    <div class="btn-group">
-      <button onclick="nextCard()">Next Card</button>
+    <!-- 3. STATS / COMPLETION SCREEN -->
+    <div id="stats-screen">
+      <h2>Session Complete! 🎉</h2>
+      <p id="stats-message" style="color: #444; font-size: 0.95rem; font-weight: 500;"></p>
+      <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; font-size: 0.9rem; text-align: left; display: flex; flex-direction: column; gap: 6px;">
+        <div><b>Total Reviews:</b> <span id="stat-total">0</span></div>
+        <div>🟢 <b>Easy (Simple):</b> <span id="stat-easy">0</span></div>
+        <div>🟠 <b>Hard (Struggled):</b> <span id="stat-hard">0</span></div>
+        <div>🔴 <b>Again (Failed/Recycled):</b> <span id="stat-again">0</span></div>
+      </div>
+      <button class="primary-btn" onclick="returnToStart()">Back to Menu</button>
     </div>
+
   </div>
 
   <script>
     let currentQueue = [];
     let currentIndex = 0;
+    let stats = { easy: 0, hard: 0, again: 0, total: 0 };
 
-    window.onload = function() {
+    // Touch Swipe State tracking
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchEndX = 0;
+    let touchEndY = 0;
+
+    const sceneEl = document.getElementById('card-scene');
+
+    sceneEl.addEventListener('touchstart', function(e) {
+      touchStartX = e.changedTouches[0].screenX;
+      touchStartY = e.changedTouches[0].screenY;
+    }, {passive: true});
+
+    sceneEl.addEventListener('touchend', function(e) {
+      touchEndX = e.changedTouches[0].screenX;
+      touchEndY = e.changedTouches[0].screenY;
+      handleSwipeGesture();
+    }, {passive: true});
+
+    function handleSwipeGesture() {
+      let xDiff = touchEndX - touchStartX;
+      let yDiff = touchEndY - touchStartY;
+
+      if (Math.abs(xDiff) > Math.abs(yDiff)) {
+        if (xDiff > 60) {
+          gradeCard('easy'); // Swipe Right -> Easy
+        } else if (xDiff < -60) {
+          gradeCard('again'); // Swipe Left -> Again
+        }
+      } else {
+        if (yDiff > 60) {
+          gradeCard('hard'); // Swipe Down -> Hard
+        }
+      }
+    }
+
+    // Desktop Keyboard Shortcuts
+    document.addEventListener('keydown', function(e) {
+      if (document.getElementById('study-screen').style.display === 'flex') {
+        if (e.code === 'Space') {
+          e.preventDefault();
+          flipCard();
+        } else if (e.code === 'ArrowLeft') {
+          gradeCard('again');
+        } else if (e.code === 'ArrowDown') {
+          gradeCard('hard');
+        } else if (e.code === 'ArrowRight') {
+          gradeCard('easy');
+        }
+      }
+    });
+
+    function startSession() {
+      const mode = document.getElementById('mode-select').value;
+      const subject = document.getElementById('subject-select').value;
+      const limit = document.getElementById('limit-select').value;
+
+      document.getElementById('start-screen').style.display = 'none';
+      document.getElementById('stats-screen').style.display = 'none';
+      document.getElementById('study-screen').style.display = 'flex';
+      document.getElementById('front-text').innerText = "Loading cards...";
+      document.getElementById('counter').innerText = "Fetching...";
+
+      stats = { easy: 0, hard: 0, again: 0, total: 0 };
+
       google.script.run
         .withSuccessHandler(function(queue) {
           currentQueue = queue;
+          currentIndex = 0;
           if (currentQueue && currentQueue.length > 0) {
             renderCard();
           } else {
-            document.getElementById('front-text').innerText = "No cards due for review!";
-            document.getElementById('counter').innerText = "0 / 0";
+            showStatsScreen();
           }
         })
         .withFailureHandler(function(error) {
           console.error("Error loading queue:", error);
           document.getElementById('front-text').innerText = "Error loading session data.";
         })
-        .getSessionQueue('cumulative', 'All');
-    };
+        .getSessionQueue(mode, subject, limit);
+    }
 
     function renderCard() {
-      if (currentQueue.length === 0) return;
+      if (currentIndex >= currentQueue.length) {
+        showStatsScreen();
+        return;
+      }
+      
       const cardData = currentQueue[currentIndex];
       
-      // Update text and subjects
       document.getElementById('front-subject').innerText = cardData.subject || '';
       document.getElementById('back-subject').innerText = cardData.subject ? cardData.subject + " (Answer)" : "Answer";
       document.getElementById('front-text').innerText = cardData.frontText || '';
       document.getElementById('back-text').innerText = cardData.backText || '';
       document.getElementById('counter').innerText = `Card ${currentIndex + 1} of ${currentQueue.length}`;
 
-      // Handle front image securely without broken placeholders
+      // Front Image Support
       const frontImgContainer = document.getElementById('front-image-container');
       frontImgContainer.innerHTML = '';
       if (cardData.frontImage) {
@@ -221,7 +454,6 @@
         }
       }
 
-      // Reset card flip state
       document.getElementById('card').classList.remove('flipped');
     }
 
@@ -229,10 +461,72 @@
       document.getElementById('card').classList.toggle('flipped');
     }
 
-    function nextCard() {
+    function gradeCard(rating) {
       if (currentQueue.length === 0) return;
-      currentIndex = (currentIndex + 1) % currentQueue.length;
-      renderCard();
+      const card = currentQueue[currentIndex];
+
+      // Track session statistics
+      stats.total++;
+      if (rating === 'easy') stats.easy++;
+      if (rating === 'hard') stats.hard++;
+      if (rating === 'again') {
+        stats.again++;
+        // Same-session recycling: push failed card back into the active queue loop!
+        currentQueue.push(card);
+      }
+
+      // Visual color feedback highlight
+      let highlightClass = '';
+      if (rating === 'again') highlightClass = 'highlight-red';
+      else if (rating === 'hard') highlightClass = 'highlight-yellow';
+      else if (rating === 'easy') highlightClass = 'highlight-green';
+
+      sceneEl.classList.add(highlightClass);
+
+      setTimeout(() => {
+        sceneEl.classList.remove(highlightClass);
+      }, 200);
+
+      // Save progress to Google Sheets backend
+      google.script.run
+        .withSuccessHandler(function(res) {
+          currentIndex++;
+          renderCard();
+        })
+        .withFailureHandler(function(err) {
+          console.error("Failed to update card:", err);
+          currentIndex++;
+          renderCard();
+        })
+        .updateCardProgress(card.rowIndex, rating);
+    }
+
+    function showStatsScreen() {
+      document.getElementById('study-screen').style.display = 'none';
+      document.getElementById('start-screen').style.display = 'none';
+      document.getElementById('stats-screen').style.display = 'flex';
+
+      document.getElementById('stat-total').innerText = stats.total;
+      document.getElementById('stat-easy').innerText = stats.easy;
+      document.getElementById('stat-hard').innerText = stats.hard;
+      document.getElementById('stat-again').innerText = stats.again;
+
+      // Custom performance message based on results
+      let msg = "";
+      if (stats.again === 0 && stats.hard === 0) {
+        msg = "Flawless session! Perfect retention across the board.";
+      } else if (stats.again > stats.easy) {
+        msg = "Solid effort. Drilling those red cards repeatedly built strong active recall!";
+      } else {
+        msg = "Great consistency! You successfully cleared your review set.";
+      }
+      document.getElementById('stats-message').innerText = msg;
+    }
+
+    function returnToStart() {
+      document.getElementById('study-screen').style.display = 'none';
+      document.getElementById('stats-screen').style.display = 'none';
+      document.getElementById('start-screen').style.display = 'flex';
     }
   </script>
 
