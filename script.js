@@ -7,10 +7,6 @@ function getSessionQueue(mode, targetSubject, limit) {
   if (!sheet) return [];
   var data = sheet.getDataRange().getValues();
   var cards = [];
-  
-  // Get today's date formatted as YYYY-MM-DD to avoid timezone bugs entirely
-  var today = new Date();
-  var todayString = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
 
   for (var i = 1; i < data.length; i++) {
     var row = data[i];
@@ -21,9 +17,9 @@ function getSessionQueue(mode, targetSubject, limit) {
     var frontText = row[2];       
     var backText = row[3];        
     var frontImage = row[4];      
-    var interval = row[5];        
-    var ease = row[6];            
-    var nextReviewDate = row[7];  
+    var interval = row[5];        // Col F
+    var ease = row[6];            // Col G
+    var nextReviewDate = row[7];  // Col H
 
     if (!frontText || String(frontText).trim() === "") continue;
 
@@ -31,28 +27,19 @@ function getSessionQueue(mode, targetSubject, limit) {
       continue;
     }
 
-    var isDue = true; // Default to true so your cards always load smoothly
+    var includeCard = true;
 
     if (mode === 'new') {
-      // If user specifically wants new cards only
-      if (interval !== "" && interval !== null && Number(interval) > 0) {
-        isDue = false;
+      // Only include if interval is empty, blank, or 0
+      if (interval !== "" && interval !== null && Number(interval) !== 0) {
+        includeCard = false;
       }
     } else {
-      // Cumulative mode: If there's a review date, check it safely
-      if (nextReviewDate && String(nextReviewDate).trim() !== "") {
-        var d = new Date(nextReviewDate);
-        if (!isNaN(d.getTime())) {
-          var dateString = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-          if (dateString > todayString) {
-            // It's scheduled for a future date, so skip it
-            isDue = false;
-          }
-        }
-      }
+      // Due & Cumulative: Pulls everything available
+      includeCard = true;
     }
 
-    if (isDue) {
+    if (includeCard) {
       cards.push({
         rowIndex: rowIndex,
         subject: subject || "General",
@@ -66,7 +53,7 @@ function getSessionQueue(mode, targetSubject, limit) {
     }
   }
 
-  // Apply card limit selector (10, 25, 50, or Full)
+  // Apply card limit selector
   if (limit && limit !== 'all' && limit !== 'Full') {
     var maxCount = parseInt(limit, 10);
     if (!isNaN(maxCount) && cards.length > maxCount) {
