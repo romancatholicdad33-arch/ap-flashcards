@@ -8,73 +8,81 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       background-color: #f4f6f9;
       margin: 0;
-      padding: 6px;
+      padding: 8px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: space-between;
-      height: 100vh;
+      /* Using dvh (dynamic viewport height) fixes Safari's bottom bar shifting issues */
+      height: 100vh; 
+      height: 100dvh; 
       box-sizing: border-box;
       color: #333;
       overflow: hidden;
     }
 
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      max-width: 650px;
+      padding: 4px 8px;
+      box-sizing: border-box;
+    }
+
     h2 {
-      margin: 0 0 2px 0;
-      font-size: 1.1rem;
+      margin: 0;
+      font-size: 1.15rem;
       color: #1a202c;
+    }
+
+    .toggle-btn {
+      background: #e2e8f0;
+      color: #4a5568;
+      border: 1px solid #cbd5e0;
+      padding: 6px 12px;
+      border-radius: 16px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
     }
 
     #app-container {
       width: 100%;
-      max-width: 700px;
+      max-width: 650px;
       display: flex;
       flex-direction: column;
       align-items: center;
       height: 100%;
+      flex: 1;
     }
 
-    #setup-view {
+    #setup-view, #stats-view {
       background: white;
-      padding: 20px;
+      padding: 24px;
       border-radius: 12px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.08);
       width: 100%;
       box-sizing: border-box;
-      margin-top: 10px;
+      margin-top: 15px;
     }
 
-    .form-group {
-      margin-bottom: 12px;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 4px;
-      font-weight: 600;
-      font-size: 0.9rem;
-    }
-
-    select {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #cbd5e0;
-      border-radius: 8px;
-      font-size: 1rem;
-      background-color: #fff;
-    }
+    .form-group { margin-bottom: 15px; }
+    label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.95rem; }
+    select { width: 100%; padding: 12px; border: 1px solid #cbd5e0; border-radius: 8px; font-size: 1rem; background-color: #fff; }
 
     button.primary-btn {
       width: 100%;
-      padding: 12px;
+      padding: 14px;
       background-color: #3182ce;
       color: white;
       border: none;
       border-radius: 8px;
-      font-size: 1rem;
+      font-size: 1.05rem;
       font-weight: bold;
       cursor: pointer;
-      margin-top: 5px;
+      margin-top: 10px;
     }
 
     #study-view {
@@ -84,36 +92,34 @@
       width: 100%;
       flex: 1;
       box-sizing: border-box;
-      justify-content: space-between;
-      padding-bottom: 5px;
+      padding-bottom: 10px;
     }
 
     .progress-indicator {
-      font-size: 0.8rem;
+      font-size: 0.85rem;
       color: #718096;
-      margin-bottom: 2px;
-      font-weight: 500;
+      margin: 4px 0;
+      font-weight: 600;
     }
 
+    /* Flex stretch automatically sizes the card to fill the negative space */
     .card-scene {
       width: 100%;
       flex: 1;
       display: flex;
       justify-content: center;
-      align-items: center;
-      margin: 2px 0;
+      align-items: stretch; 
+      padding: 10px 0;
+      perspective: 1000px;
     }
 
-    /* Dynamic Card Sizing based on View Mode */
     .flashcard {
-      width: 98%;
+      width: 94%;
       max-width: 550px;
-      height: 82vh;
-      max-height: 680px;
       background: white;
       border-radius: 16px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.12);
-      padding: 16px;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.12);
+      padding: 20px;
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
@@ -123,20 +129,14 @@
       cursor: grab;
       user-select: none;
       position: relative;
-      transition: transform 0.15s ease, background-color 0.2s ease, width 0.3s ease, height 0.3s ease;
+      transition: transform 0.15s ease, background-color 0.2s ease, width 0.3s ease;
       touch-action: none;
     }
 
-    /* Landscape Mode overrides for wider view */
+    /* Landscape mode strictly constrained so it doesn't shift the page */
     .flashcard.landscape-mode {
-      max-width: 95vw;
-      width: 95vw;
-      height: 72vh;
-      max-height: 500px;
-    }
-
-    .flashcard:active {
-      cursor: grabbing;
+      width: 100vw;
+      max-width: 900px;
     }
 
     .card-header-row {
@@ -151,84 +151,87 @@
     }
 
     .card-body {
-      font-size: 1.15rem;
+      font-size: 1.25rem;
       color: #2d3748;
-      line-height: 1.35;
+      line-height: 1.4;
       overflow-y: auto;
       width: 100%;
-      padding: 4px 0;
+      padding: 10px 0;
       white-space: pre-line;
       margin: auto 0;
     }
 
-    .card-footer-hint {
-      font-size: 0.7rem;
-      color: #cbd5e0;
-    }
+    .card-footer-hint { font-size: 0.75rem; color: #cbd5e0; }
 
     .card-image {
       max-width: 100%;
-      max-height: 180px;
+      max-height: 200px;
       border-radius: 6px;
-      margin: 4px 0;
+      margin: 8px 0;
       object-fit: contain;
     }
 
     .controls {
       display: flex;
-      gap: 8px;
-      width: 98%;
+      gap: 10px;
+      width: 94%;
       max-width: 550px;
-      margin-bottom: 4px;
+      margin-bottom: 5px;
     }
 
     .rate-btn {
       flex: 1;
-      padding: 10px 4px;
+      padding: 14px 6px;
       border: none;
-      border-radius: 8px;
-      font-size: 0.9rem;
+      border-radius: 10px;
+      font-size: 0.95rem;
       font-weight: bold;
       color: white;
       cursor: pointer;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
-
+    
     .btn-again { background-color: #e53e3e; }
     .btn-hard  { background-color: #dd6b20; }
     .btn-easy  { background-color: #38a169; }
 
     .menu-btn-bar {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 2px;
-      width: 98%;
+      width: 94%;
       max-width: 550px;
+      margin-top: 5px;
     }
-
+    
     .secondary-btn {
-      flex: 1;
+      width: 100%;
       background: #edf2f7;
       color: #4a5568;
       border: none;
-      padding: 8px 12px;
-      border-radius: 8px;
+      padding: 10px;
+      border-radius: 10px;
       font-weight: 600;
-      font-size: 0.85rem;
+      font-size: 0.9rem;
       cursor: pointer;
     }
 
-    #loading-overlay {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(255,255,255,0.85);
-      justify-content: center;
-      align-items: center;
+    /* Stats View Styling */
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #e2e8f0;
       font-size: 1.1rem;
-      font-weight: bold;
-      color: #3182ce;
-      z-index: 999;
+    }
+    .stat-row:last-of-type { border-bottom: none; margin-bottom: 15px; }
+    .stat-label { font-weight: 600; color: #4a5568; }
+    .stat-value { font-weight: bold; color: #2d3748; }
+    .val-again { color: #e53e3e; }
+    .val-hard { color: #dd6b20; }
+    .val-easy { color: #38a169; }
+
+    #loading-overlay {
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(255,255,255,0.85); justify-content: center; align-items: center;
+      font-size: 1.1rem; font-weight: bold; color: #3182ce; z-index: 999;
     }
   </style>
 </head>
@@ -236,21 +239,25 @@
 
   <div id="loading-overlay">Loading Session...</div>
 
-  <div id="app-container">
+  <div class="top-bar">
     <h2>A&P Flashcards</h2>
+    <button class="toggle-btn" onclick="toggleLandscapeMode()" id="layout-toggle-btn">Landscape: Off</button>
+  </div>
 
+  <div id="app-container">
+    
+    <!-- SETUP VIEW -->
     <div id="setup-view">
       <div class="form-group">
-        <label for="mode-select">Session Mode</label>
+        <label>Session Mode</label>
         <select id="mode-select">
           <option value="new">New Cards</option>
           <option value="due">Due / Review</option>
           <option value="combined" selected>Combined (New + Due)</option>
         </select>
       </div>
-
       <div class="form-group">
-        <label for="subject-select">Subject Filter</label>
+        <label>Subject Filter</label>
         <select id="subject-select">
           <option value="All">All Subjects</option>
           <option value="Materials">Materials</option>
@@ -258,9 +265,8 @@
           <option value="Corrosion, Metals, Welding">Corrosion, Metals, Welding</option>
         </select>
       </div>
-
       <div class="form-group">
-        <label for="limit-select">Card Limit</label>
+        <label>Card Limit</label>
         <select id="limit-select">
           <option value="10">10 Cards</option>
           <option value="20">20 Cards</option>
@@ -268,10 +274,10 @@
           <option value="all">All Available</option>
         </select>
       </div>
-
       <button class="primary-btn" onclick="startSession()">Start Studying</button>
     </div>
 
+    <!-- STUDY VIEW -->
     <div id="study-view">
       <div class="progress-indicator" id="progress-indicator">Card 1 of 10</div>
 
@@ -294,10 +300,32 @@
       </div>
 
       <div class="menu-btn-bar">
-        <button class="secondary-btn" onclick="toggleLandscapeMode()" id="layout-toggle-btn">Landscape View: Off</button>
-        <button class="secondary-btn" onclick="returnToMenu()">Menu</button>
+        <button class="secondary-btn" onclick="returnToMenu()">End Session Early</button>
       </div>
     </div>
+
+    <!-- STATS VIEW -->
+    <div id="stats-view" style="display: none;">
+      <h3 style="text-align: center; margin-top: 0; color: #1a202c;">Session Complete!</h3>
+      <div class="stat-row">
+        <span class="stat-label">Total Cards Reviewed</span>
+        <span class="stat-value" id="stat-total">0</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Again (0 Days)</span>
+        <span class="stat-value val-again" id="stat-again">0</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Hard (2 Days)</span>
+        <span class="stat-value val-hard" id="stat-hard">0</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Easy (5 Days)</span>
+        <span class="stat-value val-easy" id="stat-easy">0</span>
+      </div>
+      <button class="primary-btn" onclick="returnToMenu()">Back to Menu</button>
+    </div>
+
   </div>
 
   <script>
@@ -305,6 +333,9 @@
     var currentIndex = 0;
     var isFlipped = false;
     var isLandscapeMode = false;
+    
+    // Stats tracking
+    var sessionStats = { again: 0, hard: 0, easy: 0 };
 
     var startX = 0, startY = 0;
     var currentX = 0, currentY = 0;
@@ -319,6 +350,9 @@
       var mode = document.getElementById('mode-select').value;
       var subject = document.getElementById('subject-select').value;
       var limit = document.getElementById('limit-select').value;
+      
+      // Reset Stats
+      sessionStats = { again: 0, hard: 0, easy: 0 };
 
       showLoading(true);
       google.script.run
@@ -330,8 +364,11 @@
           }
           queue = cards;
           currentIndex = 0;
+          
           document.getElementById('setup-view').style.display = 'none';
+          document.getElementById('stats-view').style.display = 'none';
           document.getElementById('study-view').style.display = 'flex';
+          
           loadCard();
         })
         .withFailureHandler(function(err) {
@@ -343,24 +380,37 @@
 
     function returnToMenu() {
       document.getElementById('study-view').style.display = 'none';
+      document.getElementById('stats-view').style.display = 'none';
       document.getElementById('setup-view').style.display = 'block';
+    }
+
+    function showStats() {
+      document.getElementById('study-view').style.display = 'none';
+      document.getElementById('stats-view').style.display = 'block';
+      
+      document.getElementById('stat-total').innerText = queue.length;
+      document.getElementById('stat-again').innerText = sessionStats.again;
+      document.getElementById('stat-hard').innerText = sessionStats.hard;
+      document.getElementById('stat-easy').innerText = sessionStats.easy;
     }
 
     function toggleLandscapeMode() {
       isLandscapeMode = !isLandscapeMode;
+      var toggleBtn = document.getElementById('layout-toggle-btn');
       if (isLandscapeMode) {
         cardElement.classList.add('landscape-mode');
-        document.getElementById('layout-toggle-btn').innerText = 'Landscape View: On';
+        toggleBtn.innerText = 'Landscape: On';
+        toggleBtn.style.backgroundColor = '#bee3f8';
       } else {
         cardElement.classList.remove('landscape-mode');
-        document.getElementById('layout-toggle-btn').innerText = 'Landscape View: Off';
+        toggleBtn.innerText = 'Landscape: Off';
+        toggleBtn.style.backgroundColor = '#e2e8f0';
       }
     }
 
     function loadCard() {
       if (currentIndex >= queue.length) {
-        alert("Session complete!");
-        returnToMenu();
+        showStats();
         return;
       }
 
@@ -368,10 +418,7 @@
       var card = queue[currentIndex];
       document.getElementById('card-tag').innerText = card.subject;
       document.getElementById('card-id-tag').innerText = '#' + card.cardId;
-      
-      // Front text combines Column C (frontText) and Column E (frontImage / extra notes if applicable)
-      var frontDisplay = card.frontText;
-      document.getElementById('card-content').innerText = frontDisplay;
+      document.getElementById('card-content').innerText = card.frontText;
       
       var imgContainer = document.getElementById('card-image-container');
       imgContainer.innerHTML = '';
@@ -393,7 +440,6 @@
       var card = queue[currentIndex];
       isFlipped = !isFlipped;
       if (isFlipped) {
-        // Back text pulls from Column D (backText)
         document.getElementById('card-content').innerText = card.backText || "(No Answer Provided)";
         cardElement.style.backgroundColor = '#f7fafc';
       } else {
@@ -404,6 +450,9 @@
 
     function handleRating(rating) {
       var card = queue[currentIndex];
+      
+      // Update local session stats
+      sessionStats[rating]++;
       
       var flyX = rating === 'again' ? -400 : (rating === 'easy' ? 400 : 0);
       var flyY = rating === 'hard' ? 400 : 0;
@@ -424,10 +473,10 @@
         .updateCardProgress(card.rowIndex, rating);
     }
 
+    // Touch and Drag Events
     cardElement.addEventListener('touchstart', dragStart, {passive: true});
     cardElement.addEventListener('touchmove', dragMove, {passive: true});
     cardElement.addEventListener('touchend', dragEnd);
-
     cardElement.addEventListener('mousedown', dragStart);
     window.addEventListener('mousemove', dragMove);
     window.addEventListener('mouseup', dragEnd);
@@ -449,23 +498,16 @@
       var diffX = currentX - startX;
       var diffY = currentY - startY;
 
-      if (Math.abs(diffX) > 10 || Math.abs(diffY) > 10) {
-        isDragging = true;
-      }
+      if (Math.abs(diffX) > 10 || Math.abs(diffY) > 10) { isDragging = true; }
 
       if (isDragging) {
         var rotateDeg = diffX * 0.04;
         cardElement.style.transform = 'translate(' + diffX + 'px, ' + diffY + 'px) rotate(' + rotateDeg + 'deg)';
         
-        if (diffX < -40) {
-          cardElement.style.backgroundColor = '#fff5f5';
-        } else if (diffX > 40) {
-          cardElement.style.backgroundColor = '#f0fff4';
-        } else if (diffY > 40) {
-          cardElement.style.backgroundColor = '#fffaf0';
-        } else {
-          cardElement.style.backgroundColor = '#ffffff';
-        }
+        if (diffX < -40) { cardElement.style.backgroundColor = '#fff5f5'; }
+        else if (diffX > 40) { cardElement.style.backgroundColor = '#f0fff4'; }
+        else if (diffY > 40) { cardElement.style.backgroundColor = '#fffaf0'; }
+        else { cardElement.style.backgroundColor = '#ffffff'; }
       }
     }
 
@@ -480,13 +522,10 @@
       startX = 0; startY = 0;
       isDragging = false;
 
-      if (diffX < -110) {
-        handleRating('again');
-      } else if (diffX > 110) {
-        handleRating('easy');
-      } else if (diffY > 110) {
-        handleRating('hard');
-      } else {
+      if (diffX < -100) { handleRating('again'); }
+      else if (diffX > 100) { handleRating('easy'); }
+      else if (diffY > 100) { handleRating('hard'); }
+      else {
         cardElement.style.transition = 'transform 0.2s ease, background-color 0.2s ease';
         cardElement.style.transform = 'translate(0px, 0px) rotate(0deg)';
         cardElement.style.backgroundColor = '#ffffff';
