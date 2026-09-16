@@ -2,534 +2,458 @@
 <html>
 <head>
   <base target="_top">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background-color: #f4f6f9;
-      margin: 0;
-      padding: 8px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      /* Using dvh (dynamic viewport height) fixes Safari's bottom bar shifting issues */
-      height: 100vh; 
-      height: 100dvh; 
-      box-sizing: border-box;
-      color: #333;
-      overflow: hidden;
+    :root {
+      --bg-color: #f3f4f6;
+      --card-bg: #ffffff;
+      --text-color: #1f2937;
+      --text-muted: #9ca3af;
+      --primary: #2563eb;
+      --danger: #ef4444;
+      --warning: #f97316;
+      --success: #10b981;
     }
 
-    .top-bar {
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      padding: 12px;
+    }
+
+    header {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      padding: 8px 4px 12px 4px;
+      max-width: 500px;
+      margin: 0 auto;
       width: 100%;
-      max-width: 650px;
-      padding: 4px 8px;
-      box-sizing: border-box;
     }
 
-    h2 {
-      margin: 0;
-      font-size: 1.15rem;
-      color: #1a202c;
-    }
-
-    .toggle-btn {
-      background: #e2e8f0;
-      color: #4a5568;
-      border: 1px solid #cbd5e0;
-      padding: 6px 12px;
-      border-radius: 16px;
-      font-size: 0.8rem;
+    h1 {
+      font-size: 1.1rem;
       font-weight: 700;
-      cursor: pointer;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
     }
 
-    #app-container {
+    .btn-toggle {
+      background: #e5e7eb;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #4b5563;
+      cursor: pointer;
+    }
+
+    .container {
+      max-width: 500px;
       width: 100%;
-      max-width: 650px;
+      margin: 0 auto;
+      flex: 1;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      height: 100%;
-      flex: 1;
+      justify-content: center;
     }
 
-    #setup-view, #stats-view {
-      background: white;
+    /* Setup Screen */
+    .card-panel {
+      background: var(--card-bg);
+      border-radius: 16px;
       padding: 24px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-      width: 100%;
-      box-sizing: border-box;
-      margin-top: 15px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
     }
 
-    .form-group { margin-bottom: 15px; }
-    label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.95rem; }
-    select { width: 100%; padding: 12px; border: 1px solid #cbd5e0; border-radius: 8px; font-size: 1rem; background-color: #fff; }
+    .form-group {
+      margin-bottom: 20px;
+    }
 
-    button.primary-btn {
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #4b5563;
+      margin-bottom: 8px;
+    }
+
+    select {
       width: 100%;
-      padding: 14px;
-      background-color: #3182ce;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      background-color: #fff;
+      font-size: 0.95rem;
+      color: var(--text-color);
+      outline: none;
+    }
+
+    .btn-primary {
+      width: 100%;
+      background: var(--primary);
       color: white;
       border: none;
-      border-radius: 8px;
-      font-size: 1.05rem;
-      font-weight: bold;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-
-    #study-view {
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      width: 100%;
-      flex: 1;
-      box-sizing: border-box;
-      padding-bottom: 10px;
-    }
-
-    .progress-indicator {
-      font-size: 0.85rem;
-      color: #718096;
-      margin: 4px 0;
+      padding: 14px;
+      border-radius: 10px;
+      font-size: 1rem;
       font-weight: 600;
+      cursor: pointer;
     }
 
-    /* Flex stretch automatically sizes the card to fill the negative space */
+    /* Flashcard View */
+    .progress-text {
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
     .card-scene {
-      width: 100%;
       flex: 1;
       display: flex;
+      align-items: center; /* Prevents vertical full-stretch */
       justify-content: center;
-      align-items: stretch; 
-      padding: 10px 0;
       perspective: 1000px;
+      margin-bottom: 16px;
     }
 
     .flashcard {
-      width: 94%;
-      max-width: 550px;
-      background: white;
+      width: 100%;
+      min-height: 420px;
+      background: var(--card-bg);
       border-radius: 16px;
-      box-shadow: 0 6px 24px rgba(0,0,0,0.12);
       padding: 20px;
-      box-sizing: border-box;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      align-items: center;
-      text-align: center;
-      cursor: grab;
-      user-select: none;
       position: relative;
-      transition: transform 0.15s ease, background-color 0.2s ease, width 0.3s ease;
-      touch-action: none;
+      cursor: pointer;
+      user-select: none;
     }
 
-    /* Landscape mode strictly constrained so it doesn't shift the page */
-    .flashcard.landscape-mode {
-      width: 100vw;
-      max-width: 900px;
-    }
-
-    .card-header-row {
+    .card-header {
       display: flex;
       justify-content: space-between;
-      width: 100%;
       font-size: 0.75rem;
-      color: #a0aec0;
-      font-weight: 700;
+      font-weight: 600;
+      color: var(--text-muted);
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: 0.05em;
     }
 
     .card-body {
-      font-size: 1.25rem;
-      color: #2d3748;
-      line-height: 1.4;
-      overflow-y: auto;
-      width: 100%;
-      padding: 10px 0;
-      white-space: pre-line;
-      margin: auto 0;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 20px 10px;
     }
 
-    .card-footer-hint { font-size: 0.75rem; color: #cbd5e0; }
+    .card-text {
+      font-size: 1.1rem;
+      line-height: 1.5;
+      font-weight: 500;
+      color: #111827;
+    }
 
-    .card-image {
+    .card-img {
       max-width: 100%;
-      max-height: 200px;
-      border-radius: 6px;
-      margin: 8px 0;
+      max-height: 180px;
       object-fit: contain;
+      margin-bottom: 12px;
+      border-radius: 6px;
+    }
+
+    .card-footer-hint {
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--text-muted);
     }
 
     .controls {
-      display: flex;
-      gap: 10px;
-      width: 94%;
-      max-width: 550px;
-      margin-bottom: 5px;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 12px;
     }
 
-    .rate-btn {
-      flex: 1;
-      padding: 14px 6px;
+    .btn-rate {
       border: none;
-      border-radius: 10px;
-      font-size: 0.95rem;
-      font-weight: bold;
+      padding: 12px 4px;
+      border-radius: 8px;
       color: white;
-      cursor: pointer;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-    
-    .btn-again { background-color: #e53e3e; }
-    .btn-hard  { background-color: #dd6b20; }
-    .btn-easy  { background-color: #38a169; }
-
-    .menu-btn-bar {
-      width: 94%;
-      max-width: 550px;
-      margin-top: 5px;
-    }
-    
-    .secondary-btn {
-      width: 100%;
-      background: #edf2f7;
-      color: #4a5568;
-      border: none;
-      padding: 10px;
-      border-radius: 10px;
+      font-size: 0.8rem;
       font-weight: 600;
-      font-size: 0.9rem;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .btn-again { background-color: var(--danger); }
+    .btn-hard { background-color: var(--warning); }
+    .btn-easy { background-color: var(--success); }
+
+    .btn-subtle {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      text-align: center;
+      width: 100%;
+      padding: 8px;
       cursor: pointer;
     }
 
-    /* Stats View Styling */
-    .stat-row {
-      display: flex;
-      justify-content: space-between;
-      padding: 10px 0;
-      border-bottom: 1px solid #e2e8f0;
-      font-size: 1.1rem;
-    }
-    .stat-row:last-of-type { border-bottom: none; margin-bottom: 15px; }
-    .stat-label { font-weight: 600; color: #4a5568; }
-    .stat-value { font-weight: bold; color: #2d3748; }
-    .val-again { color: #e53e3e; }
-    .val-hard { color: #dd6b20; }
-    .val-easy { color: #38a169; }
-
-    #loading-overlay {
-      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(255,255,255,0.85); justify-content: center; align-items: center;
-      font-size: 1.1rem; font-weight: bold; color: #3182ce; z-index: 999;
-    }
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
 
-  <div id="loading-overlay">Loading Session...</div>
+  <header>
+    <h1>A&P Flashcards</h1>
+    <button class="btn-toggle" id="landscape-btn" onclick="toggleLandscape()">Landscape: Off</button>
+  </header>
 
-  <div class="top-bar">
-    <h2>A&P Flashcards</h2>
-    <button class="toggle-btn" onclick="toggleLandscapeMode()" id="layout-toggle-btn">Landscape: Off</button>
-  </div>
-
-  <div id="app-container">
+  <div class="container">
     
-    <!-- SETUP VIEW -->
-    <div id="setup-view">
+    <!-- Setup View -->
+    <div id="setup-view" class="card-panel">
       <div class="form-group">
         <label>Session Mode</label>
         <select id="mode-select">
-          <option value="new">New Cards</option>
-          <option value="due">Due / Review</option>
-          <option value="combined" selected>Combined (New + Due)</option>
+          <option value="Combined">Combined (New + Due)</option>
+          <option value="New">New Cards Only</option>
+          <option value="Due">Due Reviews Only</option>
         </select>
       </div>
+
       <div class="form-group">
         <label>Subject Filter</label>
         <select id="subject-select">
-          <option value="All">All Subjects</option>
-          <option value="Materials">Materials</option>
-          <option value="Aircraft Drawing">Aircraft Drawing</option>
-          <option value="Corrosion, Metals, Welding">Corrosion, Metals, Welding</option>
+          <option value="All">Loading subjects...</option>
         </select>
       </div>
+
       <div class="form-group">
         <label>Card Limit</label>
         <select id="limit-select">
           <option value="10">10 Cards</option>
           <option value="20">20 Cards</option>
           <option value="50">50 Cards</option>
-          <option value="all">All Available</option>
+          <option value="0">All Available Cards</option>
         </select>
       </div>
-      <button class="primary-btn" onclick="startSession()">Start Studying</button>
+
+      <button class="btn-primary" id="start-btn" onclick="startSession()">Start Studying</button>
     </div>
 
-    <!-- STUDY VIEW -->
-    <div id="study-view">
-      <div class="progress-indicator" id="progress-indicator">Card 1 of 10</div>
-
+    <!-- Study View -->
+    <div id="study-view" class="hidden">
+      <div class="progress-text" id="progress-text">Card 1 of 10</div>
+      
       <div class="card-scene">
-        <div class="flashcard" id="flashcard" onclick="toggleFlip()">
-          <div class="card-header-row">
-            <span id="card-tag">Subject</span>
-            <span id="card-id-tag">#101</span>
+        <div class="flashcard" id="flashcard" onclick="flipCard()">
+          <div class="card-header">
+            <span id="card-subject">SUBJECT</span>
+            <span id="card-id">#000</span>
           </div>
-          <div class="card-body" id="card-content">Question goes here...</div>
-          <div id="card-image-container"></div>
-          <div class="card-footer-hint">Tap to Flip</div>
+          
+          <div class="card-body">
+            <img id="card-image" class="card-img hidden" src="" alt="Visual Aid">
+            <div class="card-text" id="card-content">Question loading...</div>
+          </div>
+
+          <div class="card-footer-hint" id="card-hint">Tap to Flip</div>
         </div>
       </div>
 
       <div class="controls">
-        <button class="rate-btn btn-again" onclick="handleRating('again')">Again (Left)</button>
-        <button class="rate-btn btn-hard" onclick="handleRating('hard')">Hard (Down)</button>
-        <button class="rate-btn btn-easy" onclick="handleRating('easy')">Easy (Right)</button>
+        <button class="btn-rate btn-again" onclick="rateCard('again')">Again (Left)</button>
+        <button class="btn-rate btn-hard" onclick="rateCard('hard')">Hard (Down)</button>
+        <button class="btn-rate btn-easy" onclick="rateCard('easy')">Easy (Right)</button>
       </div>
 
-      <div class="menu-btn-bar">
-        <button class="secondary-btn" onclick="returnToMenu()">End Session Early</button>
-      </div>
+      <button class="btn-subtle" onclick="endSession()">End Session Early</button>
     </div>
 
-    <!-- STATS VIEW -->
-    <div id="stats-view" style="display: none;">
-      <h3 style="text-align: center; margin-top: 0; color: #1a202c;">Session Complete!</h3>
-      <div class="stat-row">
-        <span class="stat-label">Total Cards Reviewed</span>
-        <span class="stat-value" id="stat-total">0</span>
-      </div>
-      <div class="stat-row">
-        <span class="stat-label">Again (0 Days)</span>
-        <span class="stat-value val-again" id="stat-again">0</span>
-      </div>
-      <div class="stat-row">
-        <span class="stat-label">Hard (2 Days)</span>
-        <span class="stat-value val-hard" id="stat-hard">0</span>
-      </div>
-      <div class="stat-row">
-        <span class="stat-label">Easy (5 Days)</span>
-        <span class="stat-value val-easy" id="stat-easy">0</span>
-      </div>
-      <button class="primary-btn" onclick="returnToMenu()">Back to Menu</button>
+    <!-- Summary View -->
+    <div id="summary-view" class="card-panel hidden">
+      <h2 style="text-align: center; margin-bottom: 16px;">Session Complete!</h2>
+      <p id="summary-stats" style="text-align: center; margin-bottom: 24px; color: #4b5563; line-height: 1.6;"></p>
+      <button class="btn-primary" onclick="resetToSetup()">Study Again</button>
     </div>
 
   </div>
 
   <script>
-    var queue = [];
+    var currentCards = [];
     var currentIndex = 0;
     var isFlipped = false;
+    var stats = { again: 0, hard: 0, easy: 0 };
     var isLandscapeMode = false;
-    
-    // Stats tracking
-    var sessionStats = { again: 0, hard: 0, easy: 0 };
 
-    var startX = 0, startY = 0;
-    var currentX = 0, currentY = 0;
-    var isDragging = false;
-    var cardElement = document.getElementById('flashcard');
+    // Dynamically load unique subjects on page launch
+    window.addEventListener('DOMContentLoaded', function() {
+      google.script.run
+        .withSuccessHandler(function(subjects) {
+          var select = document.getElementById('subject-select');
+          select.innerHTML = '<option value="All">All Subjects</option>';
+          subjects.forEach(function(subj) {
+            var opt = document.createElement('option');
+            opt.value = subj;
+            opt.innerText = subj;
+            select.appendChild(opt);
+          });
+        })
+        .withFailureHandler(function() {
+          document.getElementById('subject-select').innerHTML = '<option value="All">All Subjects</option>';
+        })
+        .getUniqueSubjects();
+    });
 
-    function showLoading(show) {
-      document.getElementById('loading-overlay').style.display = show ? 'flex' : 'none';
+    function toggleLandscape() {
+      isLandscapeMode = !isLandscapeMode;
+      document.getElementById('landscape-btn').innerText = isLandscapeMode ? "Landscape: On" : "Landscape: Off";
+      if (isLandscapeMode) {
+        document.body.style.transform = "rotate(90deg)";
+        document.body.style.transformOrigin = "bottom left";
+        document.body.style.width = "100vh";
+        document.body.style.height = "100vw";
+      } else {
+        document.body.style.transform = "none";
+        document.body.style.width = "auto";
+        document.body.style.height = "auto";
+      }
     }
 
     function startSession() {
       var mode = document.getElementById('mode-select').value;
       var subject = document.getElementById('subject-select').value;
-      var limit = document.getElementById('limit-select').value;
-      
-      // Reset Stats
-      sessionStats = { again: 0, hard: 0, easy: 0 };
+      var limit = parseInt(document.getElementById('limit-select').value);
 
-      showLoading(true);
+      document.getElementById('start-btn').innerText = "Loading Deck...";
+
       google.script.run
         .withSuccessHandler(function(cards) {
-          showLoading(false);
+          document.getElementById('start-btn').innerText = "Start Studying";
           if (!cards || cards.length === 0) {
-            alert("No cards found for this selection!");
+            alert("No cards found for the selected criteria!");
             return;
           }
-          queue = cards;
+          currentCards = cards;
           currentIndex = 0;
+          stats = { again: 0, hard: 0, easy: 0 };
           
-          document.getElementById('setup-view').style.display = 'none';
-          document.getElementById('stats-view').style.display = 'none';
-          document.getElementById('study-view').style.display = 'flex';
-          
-          loadCard();
+          document.getElementById('setup-view').classList.add('hidden');
+          document.getElementById('study-view').classList.remove('hidden');
+          renderCard();
         })
-        .withFailureHandler(function(err) {
-          showLoading(false);
-          alert("Error loading session: " + err.message);
-        })
-        .getSessionQueue(mode, subject, limit);
+        .getFlashcards(mode, subject, limit);
     }
 
-    function returnToMenu() {
-      document.getElementById('study-view').style.display = 'none';
-      document.getElementById('stats-view').style.display = 'none';
-      document.getElementById('setup-view').style.display = 'block';
-    }
-
-    function showStats() {
-      document.getElementById('study-view').style.display = 'none';
-      document.getElementById('stats-view').style.display = 'block';
-      
-      document.getElementById('stat-total').innerText = queue.length;
-      document.getElementById('stat-again').innerText = sessionStats.again;
-      document.getElementById('stat-hard').innerText = sessionStats.hard;
-      document.getElementById('stat-easy').innerText = sessionStats.easy;
-    }
-
-    function toggleLandscapeMode() {
-      isLandscapeMode = !isLandscapeMode;
-      var toggleBtn = document.getElementById('layout-toggle-btn');
-      if (isLandscapeMode) {
-        cardElement.classList.add('landscape-mode');
-        toggleBtn.innerText = 'Landscape: On';
-        toggleBtn.style.backgroundColor = '#bee3f8';
-      } else {
-        cardElement.classList.remove('landscape-mode');
-        toggleBtn.innerText = 'Landscape: Off';
-        toggleBtn.style.backgroundColor = '#e2e8f0';
-      }
-    }
-
-    function loadCard() {
-      if (currentIndex >= queue.length) {
-        showStats();
+    function renderCard() {
+      if (currentIndex >= currentCards.length) {
+        showSummary();
         return;
       }
 
+      var card = currentCards[currentIndex];
       isFlipped = false;
-      var card = queue[currentIndex];
-      document.getElementById('card-tag').innerText = card.subject;
-      document.getElementById('card-id-tag').innerText = '#' + card.cardId;
-      document.getElementById('card-content').innerText = card.frontText;
-      
-      var imgContainer = document.getElementById('card-image-container');
-      imgContainer.innerHTML = '';
-      if (card.frontImage && card.frontImage.length > 3) {
-        var img = document.createElement('img');
-        img.src = card.frontImage;
-        img.className = 'card-image';
-        imgContainer.appendChild(img);
-      }
 
-      document.getElementById('progress-indicator').innerText = 'Card ' + (currentIndex + 1) + ' of ' + queue.length;
-      
-      cardElement.style.transform = 'translate(0px, 0px) rotate(0deg)';
-      cardElement.style.backgroundColor = '#ffffff';
-    }
+      document.getElementById('progress-text').innerText = "Card " + (currentIndex + 1) + " of " + currentCards.length;
+      document.getElementById('card-subject').innerText = card.subject;
+      document.getElementById('card-id').innerText = "#" + card.id;
+      document.getElementById('card-content').innerText = card.q;
+      document.getElementById('card-hint').innerText = "Tap to Flip";
 
-    function toggleFlip() {
-      if (isDragging) return; 
-      var card = queue[currentIndex];
-      isFlipped = !isFlipped;
-      if (isFlipped) {
-        document.getElementById('card-content').innerText = card.backText || "(No Answer Provided)";
-        cardElement.style.backgroundColor = '#f7fafc';
+      var imgElem = document.getElementById('card-image');
+      if (card.image && card.image.trim() !== '') {
+        imgElem.src = card.image;
+        imgElem.classList.remove('hidden');
       } else {
-        document.getElementById('card-content').innerText = card.frontText;
-        cardElement.style.backgroundColor = '#ffffff';
+        imgElem.classList.add('hidden');
       }
     }
 
-    function handleRating(rating) {
-      var card = queue[currentIndex];
+    function flipCard() {
+      var card = currentCards[currentIndex];
+      isFlipped = !isFlipped;
+
+      if (isFlipped) {
+        document.getElementById('card-content').innerText = card.a;
+        document.getElementById('card-hint').innerText = "Tap to See Question";
+      } else {
+        document.getElementById('card-content').innerText = card.q;
+        document.getElementById('card-hint').innerText = "Tap to Flip";
+      }
+    }
+
+    function rateCard(rating) {
+      if (currentIndex >= currentCards.length) return;
+
+      var card = currentCards[currentIndex];
+      var interval = card.interval;
+      var ease = card.ease;
       
-      // Update local session stats
-      sessionStats[rating]++;
-      
-      var flyX = rating === 'again' ? -400 : (rating === 'easy' ? 400 : 0);
-      var flyY = rating === 'hard' ? 400 : 0;
-      
-      cardElement.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
-      cardElement.style.transform = 'translate(' + flyX + 'px, ' + flyY + 'px) rotate(' + (flyX * 0.1) + 'deg)';
-      cardElement.style.opacity = '0';
+      var newInterval = 0;
+      var newEase = ease;
+      var today = new Date();
 
-      google.script.run
-        .withSuccessHandler(function() {
-          setTimeout(function() {
-            cardElement.style.transition = 'none';
-            cardElement.style.opacity = '1';
-            currentIndex++;
-            loadCard();
-          }, 200);
-        })
-        .updateCardProgress(card.rowIndex, rating);
-    }
-
-    // Touch and Drag Events
-    cardElement.addEventListener('touchstart', dragStart, {passive: true});
-    cardElement.addEventListener('touchmove', dragMove, {passive: true});
-    cardElement.addEventListener('touchend', dragEnd);
-    cardElement.addEventListener('mousedown', dragStart);
-    window.addEventListener('mousemove', dragMove);
-    window.addEventListener('mouseup', dragEnd);
-
-    function getClientX(e) { return e.touches ? e.touches[0].clientX : e.clientX; }
-    function getClientY(e) { return e.touches ? e.touches[0].clientY : e.clientY; }
-
-    function dragStart(e) {
-      isDragging = false;
-      startX = getClientX(e);
-      startY = getClientY(e);
-      cardElement.style.transition = 'none';
-    }
-
-    function dragMove(e) {
-      if (!startX && !startY) return;
-      currentX = getClientX(e);
-      currentY = getClientY(e);
-      var diffX = currentX - startX;
-      var diffY = currentY - startY;
-
-      if (Math.abs(diffX) > 10 || Math.abs(diffY) > 10) { isDragging = true; }
-
-      if (isDragging) {
-        var rotateDeg = diffX * 0.04;
-        cardElement.style.transform = 'translate(' + diffX + 'px, ' + diffY + 'px) rotate(' + rotateDeg + 'deg)';
-        
-        if (diffX < -40) { cardElement.style.backgroundColor = '#fff5f5'; }
-        else if (diffX > 40) { cardElement.style.backgroundColor = '#f0fff4'; }
-        else if (diffY > 40) { cardElement.style.backgroundColor = '#fffaf0'; }
-        else { cardElement.style.backgroundColor = '#ffffff'; }
-      }
-    }
-
-    function dragEnd(e) {
-      if (!isDragging) {
-        startX = 0; startY = 0;
-        return;
+      if (rating === 'again') {
+        stats.again++;
+        newInterval = 0;
+        newEase = Math.max(1.3, ease - 0.2);
+      } else if (rating === 'hard') {
+        stats.hard++;
+        newInterval = 2; // Hard set to 2-day delay
+      } else if (rating === 'easy') {
+        stats.easy++;
+        newInterval = interval === 0 ? 5 : Math.round(interval * ease);
+        newEase = ease + 0.15;
       }
 
-      var diffX = currentX - startX;
-      var diffY = currentY - startY;
-      startX = 0; startY = 0;
-      isDragging = false;
+      // Calculate next due date string (M/d/yyyy)
+      var dueDateObj = new Date(today.setDate(today.getDate() + newInterval));
+      var dueDateStr = (dueDateObj.getMonth() + 1) + "/" + dueDateObj.getDate() + "/" + dueDateObj.getFullYear();
 
-      if (diffX < -100) { handleRating('again'); }
-      else if (diffX > 100) { handleRating('easy'); }
-      else if (diffY > 100) { handleRating('hard'); }
-      else {
-        cardElement.style.transition = 'transform 0.2s ease, background-color 0.2s ease';
-        cardElement.style.transform = 'translate(0px, 0px) rotate(0deg)';
-        cardElement.style.backgroundColor = '#ffffff';
-      }
+      // Send background update to spreadsheet
+      google.script.run.updateCardProgress(card.id, newInterval, Number(newEase.toFixed(2)), dueDateStr);
+
+      currentIndex++;
+      renderCard();
+    }
+
+    function endSession() {
+      showSummary();
+    }
+
+    function showSummary() {
+      document.getElementById('study-view').classList.add('hidden');
+      document.getElementById('summary-view').classList.remove('hidden');
+
+      var total = stats.again + stats.hard + stats.easy;
+      document.getElementById('summary-stats').innerHTML = 
+        "Reviewed <b>" + total + "</b> card(s)<br><br>" +
+        "Again: " + stats.again + "<br>" +
+        "Hard: " + stats.hard + "<br>" +
+        "Easy: " + stats.easy;
+    }
+
+    function resetToSetup() {
+      document.getElementById('summary-view').classList.add('hidden');
+      document.getElementById('setup-view').classList.remove('hidden');
     }
   </script>
 </body>
