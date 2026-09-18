@@ -22,6 +22,13 @@
       -webkit-tap-highlight-color: transparent;
     }
 
+    /* Prevent full-page bounce and pull-to-refresh on mobile */
+    html, body {
+      overscroll-behavior: none;
+      overscroll-behavior-y: none;
+      overflow: hidden;
+    }
+
     body {
       background-color: var(--bg-color);
       color: var(--text-color);
@@ -107,6 +114,7 @@
       border-radius: 8px;
       padding: 8px 12px;
       background: #fff;
+      touch-action: pan-y;
     }
 
     .checkbox-item {
@@ -160,6 +168,7 @@
       perspective: 1000px;
       margin-bottom: 16px;
       position: relative;
+      touch-action: none;
     }
 
     .flashcard {
@@ -176,8 +185,10 @@
       position: relative;
       cursor: pointer;
       user-select: none;
-      will-change: transform;
-      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+      -webkit-user-select: none;
+      touch-action: none;
+      will-change: transform, opacity;
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
     }
 
     /* Swipe Highlight Classes */
@@ -341,9 +352,9 @@
       </div>
 
       <div class="controls">
-        <button class="btn-rate btn-again" onclick="rateCard('again')">Again (Left)</button>
-        <button class="btn-rate btn-hard" onclick="rateCard('hard')">Hard (Down)</button>
-        <button class="btn-rate btn-easy" onclick="rateCard('easy')">Easy (Right)</button>
+        <button class="btn-rate btn-again" onclick="handleButtonRate('again')">Again (Left)</button>
+        <button class="btn-rate btn-hard" onclick="handleButtonRate('hard')">Hard (Down)</button>
+        <button class="btn-rate btn-easy" onclick="handleButtonRate('easy')">Easy (Right)</button>
       </div>
 
       <button class="btn-subtle" onclick="endSession()">End Session Early</button>
@@ -372,7 +383,7 @@
     var currentX = 0;
     var currentY = 0;
     var isDragging = false;
-    var hasSwiped = false;
+    var isProcessingSwipe = false;
 
     window.addEventListener('DOMContentLoaded', function() {
       google.script.run
@@ -394,7 +405,6 @@
 
       var blocks = Object.keys(globalBlockMap).sort();
       
-      // All Blocks Checkbox
       var allDiv = document.createElement('label');
       allDiv.className = 'checkbox-item';
       allDiv.innerHTML = '<input type="checkbox" id="block-all" value="All" checked onchange="toggleAllBlocks(this)"> <b>All Blocks</b>';
@@ -465,7 +475,6 @@
         return;
       }
 
-      // All Subjects Checkbox
       var allDiv = document.createElement('label');
       allDiv.className = 'checkbox-item';
       allDiv.innerHTML = '<input type="checkbox" id="subj-all" value="All" checked onchange="toggleAllSubjects(this)"> <b>All Subjects</b>';
@@ -583,7 +592,7 @@
     }
 
     function flipCard() {
-      if (hasSwiped) return;
+      if (isProcessingSwipe) return;
 
       var card = currentCards[currentIndex];
       isFlipped = !isFlipped;
@@ -595,6 +604,38 @@
         document.getElementById('card-content').innerText = card.q;
         document.getElementById('card-hint').innerText = "Tap to Flip";
       }
+    }
+
+    function handleButtonRate(rating) {
+      if (isProcessingSwipe || currentIndex >= currentCards.length) return;
+
+      if (rating === 'again') {
+        animateAndRate('again', 'translate(-120vw, 0px) rotate(-20deg)');
+      } else if (rating === 'hard') {
+        animateAndRate('hard', 'translate(0px, 120vh) rotate(0deg)');
+      } else if (rating === 'easy') {
+        animateAndRate('easy', 'translate(120vw, 0px) rotate(20deg)');
+      }
+    }
+
+    function animateAndRate(rating, transformStyle) {
+      isProcessingSwipe = true;
+      var card = document.getElementById('flashcard');
+      
+      card.style.transition = 'transform 0.25s ease, opacity 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease';
+      
+      if (rating === 'again') card.classList.add('swipe-left');
+      if (rating === 'hard') card.classList.add('swipe-down');
+      if (rating === 'easy') card.classList.add('swipe-right');
+
+      card.style.transform = transformStyle;
+      card.style.opacity = '0';
+
+      // 250ms delay to ensure swipe animation and feedback are visible before updating card
+      setTimeout(function() {
+        rateCard(rating);
+        isProcessingSwipe = false;
+      }, 250);
     }
 
     function rateCard(rating) {
@@ -634,26 +675,27 @@
       var card = document.getElementById('flashcard');
 
       card.addEventListener('touchstart', function(e) {
-        if (e.touches.length !== 1) return;
+        if (isProcessingSwipe || e.touches.length !== 1) return;
         startX = e.touches[0].clientX;
         startY = e.touches[0].clientY;
         currentX = startX;
         currentY = startY;
         isDragging = true;
-        hasSwiped = false;
         card.style.transition = 'none';
       }, { passive: true });
 
       card.addEventListener('touchmove', function(e) {
-        if (!isDragging) return;
+        if (!isDragging || isProcessingSwipe) return;
+        
         currentX = e.touches[0].clientX;
         currentY = e.touches[0].clientY;
 
         var deltaX = currentX - startX;
         var deltaY = currentY - startY;
 
-        if (Math.abs(deltaX) > 10 || Math.abs(deltaY) > 10) {
-          hasSwiped = true;
+        // Prevent whole page scrolling/pulling while swiping card
+        if (e.cancelable) {
+          e.preventDefault();
         }
 
         var rotate = deltaX * 0.05;
@@ -673,58 +715,62 @@
             card.classList.add('swipe-down');
           }
         }
-      }, { passive: true });
+      }, { passive: false });
 
       card.addEventListener('touchend', function(e) {
-        if (!isDragging) return;
+        if (!isDragging || isProcessingSwipe) return;
         isDragging = false;
 
         var deltaX = currentX - startX;
         var deltaY = currentY - startY;
+        var distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
         var swipeThreshold = 80;
 
-        card.style.transition = 'transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease';
-
-        if (hasSwiped) {
-          if (Math.abs(deltaX) > Math.abs(deltaY)) {
-            if (deltaX < -swipeThreshold) {
-              rateCard('again');
-              return;
-            } else if (deltaX > swipeThreshold) {
-              rateCard('easy');
-              return;
-            }
-          } else {
-            if (deltaY > swipeThreshold) {
-              rateCard('hard');
-              return;
-            }
-          }
-        } else {
+        // Instant flip on clean tap (minimal finger move)
+        if (distance < 10) {
+          resetCardPosition();
           flipCard();
+          return;
         }
 
+        // Swipe processing with animation delay
+        if (Math.abs(deltaX) > Math.abs(deltaY)) {
+          if (deltaX < -swipeThreshold) {
+            animateAndRate('again', 'translate(-120vw, ' + deltaY + 'px) rotate(-20deg)');
+            return;
+          } else if (deltaX > swipeThreshold) {
+            animateAndRate('easy', 'translate(120vw, ' + deltaY + 'px) rotate(20deg)');
+            return;
+          }
+        } else {
+          if (deltaY > swipeThreshold) {
+            animateAndRate('hard', 'translate(' + deltaX + 'px, 120vh) rotate(0deg)');
+            return;
+          }
+        }
+
+        // Snap back if swipe threshold wasn't met
         resetCardPosition();
       });
 
+      // Desktop click handler
       card.addEventListener('click', function(e) {
-        if (!hasSwiped) {
-          flipCard();
-        }
+        if (e.pointerType === 'touch') return; // Handled in touchend for mobile
+        flipCard();
       });
     }
 
     function resetCardPosition() {
       var card = document.getElementById('flashcard');
-      card.style.transition = 'transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease';
+      card.style.transition = 'transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease';
       card.style.transform = 'none';
+      card.style.opacity = '1';
       card.classList.remove('swipe-left', 'swipe-right', 'swipe-down');
       startX = 0;
       startY = 0;
       currentX = 0;
       currentY = 0;
       isDragging = false;
-      hasSwiped = false;
     }
 
     function endSession() {
