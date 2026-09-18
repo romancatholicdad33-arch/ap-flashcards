@@ -29,6 +29,7 @@
       display: flex;
       flex-direction: column;
       padding: 12px;
+      touch-action: manipulation;
     }
 
     header {
@@ -121,10 +122,11 @@
     .card-scene {
       flex: 1;
       display: flex;
-      align-items: center; /* Prevents vertical full-stretch */
+      align-items: center;
       justify-content: center;
       perspective: 1000px;
       margin-bottom: 16px;
+      position: relative;
     }
 
     .flashcard {
@@ -133,6 +135,7 @@
       background: var(--card-bg);
       border-radius: 16px;
       padding: 20px;
+      border: 3px solid transparent;
       box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
       display: flex;
       flex-direction: column;
@@ -140,6 +143,24 @@
       position: relative;
       cursor: pointer;
       user-select: none;
+      will-change: transform;
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    /* Swipe Highlight Classes */
+    .flashcard.swipe-left {
+      border-color: var(--danger) !important;
+      box-shadow: 0 0 18px rgba(239, 68, 68, 0.4) !important;
+    }
+
+    .flashcard.swipe-down {
+      border-color: var(--warning) !important;
+      box-shadow: 0 0 18px rgba(249, 115, 22, 0.4) !important;
+    }
+
+    .flashcard.swipe-right {
+      border-color: var(--success) !important;
+      box-shadow: 0 0 18px rgba(16, 185, 129, 0.4) !important;
     }
 
     .card-header {
@@ -264,7 +285,7 @@
       <div class="progress-text" id="progress-text">Card 1 of 10</div>
       
       <div class="card-scene">
-        <div class="flashcard" id="flashcard" onclick="flipCard()">
+        <div class="flashcard" id="flashcard">
           <div class="card-header">
             <span id="card-subject">SUBJECT</span>
             <span id="card-id">#000</span>
@@ -304,8 +325,16 @@
     var stats = { again: 0, hard: 0, easy: 0 };
     var isLandscapeMode = false;
 
-    // Dynamically load unique subjects on page launch
+    // Swipe tracking variables
+    var startX = 0;
+    var startY = 0;
+    var currentX = 0;
+    var currentY = 0;
+    var isDragging = false;
+    var hasSwiped = false;
+
     window.addEventListener('DOMContentLoaded', function() {
+      // Dynamically load unique subjects on page launch
       google.script.run
         .withSuccessHandler(function(subjects) {
           var select = document.getElementById('subject-select');
@@ -321,6 +350,8 @@
           document.getElementById('subject-select').innerHTML = '<option value="All">All Subjects</option>';
         })
         .getUniqueSubjects();
+
+      initSwipeGestures();
     });
 
     function toggleLandscape() {
@@ -372,6 +403,8 @@
       var card = currentCards[currentIndex];
       isFlipped = false;
 
+      resetCardPosition();
+
       document.getElementById('progress-text').innerText = "Card " + (currentIndex + 1) + " of " + currentCards.length;
       document.getElementById('card-subject').innerText = card.subject;
       document.getElementById('card-id').innerText = "#" + card.id;
@@ -388,6 +421,8 @@
     }
 
     function flipCard() {
+      if (hasSwiped) return; // Prevent flip if action was a swipe
+
       var card = currentCards[currentIndex];
       isFlipped = !isFlipped;
 
@@ -424,15 +459,111 @@
         newEase = ease + 0.15;
       }
 
-      // Calculate next due date string (M/d/yyyy)
       var dueDateObj = new Date(today.setDate(today.getDate() + newInterval));
       var dueDateStr = (dueDateObj.getMonth() + 1) + "/" + dueDateObj.getDate() + "/" + dueDateObj.getFullYear();
 
-      // Send background update to spreadsheet
       google.script.run.updateCardProgress(card.id, newInterval, Number(newEase.toFixed(2)), dueDateStr);
 
       currentIndex++;
       renderCard();
+    }
+
+    /* Swipe Gesture Implementation */
+    function initSwipeGestures() {
+      var card = document.getElementById('flashcard');
+
+      card.addEventListener('touchstart', function(e) {
+        if (e.touches.length !== 1) return;
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        currentX = startX;
+        currentY = startY;
+        isDragging = true;
+        hasSwiped = false;
+        card.style.transition = 'none';
+      }, { passive: true });
+
+      card.addEventListener('touchmove', function(e) {
+        if (!isDragging) return;
+        currentX = e.touches[0].clientX;
+        currentY = e.touches[0].clientY;
+
+        var deltaX = currentX - startX;
+        var deltaY = currentY - startY;
+
+        if (Math.abs(deltaX) > 10 || Math.abs(deltaY) > 10) {
+          hasSwiped = true;
+        }
+
+        var rotate = deltaX * 0.05;
+        card.style.transform = "translate(" + deltaX + "px, " + deltaY + "px) rotate(" + rotate + "deg)";
+
+        var threshold = 40;
+        card.classList.remove('swipe-left', 'swipe-right', 'swipe-down');
+
+        if (Math.abs(deltaX) > Math.abs(deltaY)) {
+          if (deltaX < -threshold) {
+            card.classList.add('swipe-left');
+          } else if (deltaX > threshold) {
+            card.classList.add('swipe-right');
+          }
+        } else {
+          if (deltaY > threshold) {
+            card.classList.add('swipe-down');
+          }
+        }
+      }, { passive: true });
+
+      card.addEventListener('touchend', function(e) {
+        if (!isDragging) return;
+        isDragging = false;
+
+        var deltaX = currentX - startX;
+        var deltaY = currentY - startY;
+        var swipeThreshold = 80;
+
+        card.style.transition = 'transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease';
+
+        if (hasSwiped) {
+          if (Math.abs(deltaX) > Math.abs(deltaY)) {
+            if (deltaX < -swipeThreshold) {
+              rateCard('again');
+              return;
+            } else if (deltaX > swipeThreshold) {
+              rateCard('easy');
+              return;
+            }
+          } else {
+            if (deltaY > swipeThreshold) {
+              rateCard('hard');
+              return;
+            }
+          }
+        } else {
+          flipCard(); // Pure tap
+        }
+
+        resetCardPosition();
+      });
+
+      card.addEventListener('click', function(e) {
+        if (!hasSwiped) {
+          flipCard();
+        }
+      });
+    }
+
+    function resetCardPosition() {
+      var card = document.getElementById('flashcard');
+      card.style.transition = 'transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease';
+      card.style.transform = 'none';
+      card.classList.remove('swipe-left', 'swipe-right', 'swipe-down');
+      startX = 0;
+      startY = 0;
+      currentX = 0;
+      currentY = 0;
+      isDragging = false;
+      hasSwiped = false;
     }
 
     function endSession() {
