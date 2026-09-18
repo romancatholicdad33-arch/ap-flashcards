@@ -6,27 +6,31 @@ function doGet() {
 }
 
 /**
- * Scans Column B to dynamically pull all unique subjects for the dropdown menu
+ * Reads Columns B (Block) and C (Subject) to build dynamic mapping
  */
-function getUniqueSubjects() {
+function getBlockAndSubjectData() {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
   var data = sheet.getDataRange().getValues();
-  var subjects = [];
+  var blockMap = {};
   
-  // Start at index 1 to skip row 1 headers
   for (var i = 1; i < data.length; i++) {
-    var subjectVal = data[i][1]; // Column B
-    if (subjectVal && subjects.indexOf(subjectVal) === -1) {
-      subjects.push(subjectVal);
+    var blockVal = data[i][1] ? String(data[i][1]).trim() : "Unassigned";
+    var subjectVal = data[i][2] ? String(data[i][2]).trim() : "";
+    
+    if (!blockMap[blockVal]) {
+      blockMap[blockVal] = [];
+    }
+    if (subjectVal && blockMap[blockVal].indexOf(subjectVal) === -1) {
+      blockMap[blockVal].push(subjectVal);
     }
   }
-  return subjects.sort();
+  return blockMap;
 }
 
 /**
- * Fetches cards based on mode, subject, and volume, then applies a true shuffle
+ * Fetches cards filtered by Mode, Multiple Blocks, Multiple Subjects, and Volume
  */
-function getFlashcards(mode, subjectFilter, limit) {
+function getFlashcards(mode, selectedBlocks, selectedSubjects, limit) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
   var data = sheet.getDataRange().getValues();
   var today = new Date();
@@ -34,21 +38,30 @@ function getFlashcards(mode, subjectFilter, limit) {
 
   var cards = [];
 
+  var isAllBlocks = (!selectedBlocks || selectedBlocks.length === 0 || selectedBlocks.indexOf('All') !== -1);
+  var isAllSubjects = (!selectedSubjects || selectedSubjects.length === 0 || selectedSubjects.indexOf('All') !== -1);
+
   for (var i = 1; i < data.length; i++) {
     var row = data[i];
     var id = row[0];
-    var subject = row[1];
-    var q = row[2];
-    var a = row[3];
-    var image = row[4];
-    var interval = parseInt(row[5]) || 0;
-    var ease = parseFloat(row[6]) || 2.5;
-    var dueDateRaw = row[7];
+    var block = row[1] ? String(row[1]).trim() : "Unassigned";
+    var subject = row[2] ? String(row[2]).trim() : "";
+    var q = row[3];
+    var a = row[4];
+    var image = row[5];
+    var interval = parseInt(row[6]) || 0;
+    var ease = parseFloat(row[7]) || 2.5;
+    var dueDateRaw = row[8];
     
     if (!id || !q) continue;
 
-    // Filter by subject
-    if (subjectFilter !== 'All' && subject !== subjectFilter) {
+    // Multi-Block Filter
+    if (!isAllBlocks && selectedBlocks.indexOf(block) === -1) {
+      continue;
+    }
+
+    // Multi-Subject Filter
+    if (!isAllSubjects && selectedSubjects.indexOf(subject) === -1) {
       continue;
     }
 
@@ -66,6 +79,7 @@ function getFlashcards(mode, subjectFilter, limit) {
     if (matchesMode) {
       cards.push({
         id: id,
+        block: block,
         subject: subject,
         q: q,
         a: a,
@@ -94,7 +108,7 @@ function getFlashcards(mode, subjectFilter, limit) {
 }
 
 /**
- * Updates columns F (interval), G (ease), and H (dueDate) for a given card ID
+ * Updates columns G (interval), H (ease), and I (dueDate)
  */
 function updateCardProgress(id, newInterval, newEase, newDueDateStr) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
@@ -102,9 +116,9 @@ function updateCardProgress(id, newInterval, newEase, newDueDateStr) {
 
   for (var i = 1; i < data.length; i++) {
     if (data[i][0] == id) {
-      sheet.getRange(i + 1, 6).setValue(newInterval);    // Column F
-      sheet.getRange(i + 1, 7).setValue(newEase);        // Column G
-      sheet.getRange(i + 1, 8).setValue(newDueDateStr);  // Column H
+      sheet.getRange(i + 1, 7).setValue(newInterval);    // Column G
+      sheet.getRange(i + 1, 8).setValue(newEase);        // Column H
+      sheet.getRange(i + 1, 9).setValue(newDueDateStr);  // Column I
       return { success: true };
     }
   }
