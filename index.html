@@ -404,19 +404,35 @@
       initSwipeGestures();
     });
 
+    function getFormattedDate(d) {
+      var year = d.getFullYear();
+      var month = (d.getMonth() + 1 < 10 ? '0' : '') + (d.getMonth() + 1);
+      var day = (d.getDate() < 10 ? '0' : '') + d.getDate();
+      return year + '-' + month + '-' + day;
+    }
+
     function getLocalProgress() {
-      var data = localStorage.getItem('ap_flashcard_progress');
-      return data ? JSON.parse(data) : {};
+      try {
+        var data = localStorage.getItem('ap_flashcard_progress');
+        return data ? JSON.parse(data) : {};
+      } catch(e) {
+        return {};
+      }
     }
 
     function saveLocalCardProgress(cardId, interval, ease, dueDateStr) {
       var progress = getLocalProgress();
-      progress[cardId] = {
+      progress[String(cardId)] = {
+        reviewed: true,
         interval: interval,
         ease: ease,
         dueDate: dueDateStr
       };
-      localStorage.setItem('ap_flashcard_progress', JSON.stringify(progress));
+      try {
+        localStorage.setItem('ap_flashcard_progress', JSON.stringify(progress));
+      } catch(e) {
+        console.error("Browser storage blocked or full.", e);
+      }
     }
 
     function renderBlockCheckboxes() {
@@ -550,8 +566,7 @@
       }
 
       var progress = getLocalProgress();
-      var today = new Date();
-      today.setHours(0,0,0,0);
+      var todayStr = getFormattedDate(new Date());
 
       var filtered = masterCards.filter(function(card) {
         var blockMatch = (blocks.indexOf('All') !== -1) || (blocks.indexOf(card.block) !== -1);
@@ -560,22 +575,15 @@
       });
 
       filtered = filtered.filter(function(card) {
-        var cardProg = progress[card.id] || { interval: 0, ease: 2.5, dueDate: "" };
-        card.interval = cardProg.interval;
-        card.ease = cardProg.ease;
-        card.dueDate = cardProg.dueDate;
+        var cardProg = progress[String(card.id)];
+        var isReviewed = Boolean(cardProg && cardProg.reviewed === true);
+        
+        card.interval = isReviewed ? cardProg.interval : 0;
+        card.ease = isReviewed ? cardProg.ease : 2.5;
+        card.dueDate = isReviewed ? cardProg.dueDate : "";
 
-        var isNew = (card.interval === 0);
-        var isDue = false;
-
-        if (card.dueDate) {
-          var dueParts = card.dueDate.split('/');
-          if (dueParts.length === 3) {
-            var dueObj = new Date(dueParts[2], dueParts[0] - 1, dueParts[1]);
-            dueObj.setHours(0,0,0,0);
-            if (dueObj <= today) isDue = true;
-          }
-        }
+        var isNew = !isReviewed;
+        var isDue = isReviewed && card.dueDate && (card.dueDate <= todayStr);
 
         if (mode === 'Cram') return true;
         if (mode === 'New') return isNew;
@@ -682,7 +690,6 @@
       
       var newInterval = 0;
       var newEase = ease;
-      var today = new Date();
 
       if (rating === 'again') {
         stats.again++;
@@ -703,8 +710,9 @@
         newEase = ease + 0.15;
       }
 
-      var dueDateObj = new Date(today.setDate(today.getDate() + newInterval));
-      var dueDateStr = (dueDateObj.getMonth() + 1) + "/" + dueDateObj.getDate() + "/" + dueDateObj.getFullYear();
+      var dueObj = new Date();
+      dueObj.setDate(dueObj.getDate() + newInterval);
+      var dueDateStr = getFormattedDate(dueObj);
 
       saveLocalCardProgress(card.id, newInterval, Number(newEase.toFixed(2)), dueDateStr);
 
@@ -762,7 +770,6 @@
 
         lastTouchTime = Date.now();
 
-        // Tap detected (minimal finger drag)
         if (distance < 15) {
           if (e.cancelable) e.preventDefault();
           resetCardPosition();
@@ -789,7 +796,6 @@
       });
 
       card.addEventListener('click', function(e) {
-        // Block synthetic ghost clicks triggered by iOS Safari after touch
         if (Date.now() - lastTouchTime < 500) return;
         flipCard();
       });
